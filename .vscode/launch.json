@@ -1,0 +1,97 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "🚀 Launch Brave Extension",
+      "type": "chrome",
+      "request": "launch",
+      "url": "chrome://extensions/",
+      "webRoot": "${workspaceFolder}/src",
+      "sourceMaps": true,
+      "userDataDir": "${workspaceFolder}/.vscode/brave-debug-profile",
+      "skipFiles": [
+        "<node_internals>/**",
+        "**/node_modules/**",
+        "**/react-dom/**",
+        "**/react/**",
+        "**/VM*.js"
+      ],
+      "runtimeExecutable": "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser",
+      "runtimeArgs": [
+        "--load-extension=${workspaceFolder}/dist",
+        "--disable-extensions-except=${workspaceFolder}/dist",
+        "--disable-features=TranslateUI",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--disable-default-apps",
+        "--disable-component-extensions-with-background-pages",
+        "--disable-background-networking",
+        "--disable-client-side-phishing-detection",
+        "--disable-sync",
+        "--metrics-recording-only",
+        "--disable-backgrounding-occluded-windows",
+        "--disable-renderer-backgrounding",
+        "--disable-background-timer-throttling",
+        "--disable-ipc-flooding-protection",
+        "--password-store=basic",
+        "--use-mock-keychain"
+      ],
+      "trace": true
+    },
+    {
+      "name": "🔗 Attach to Brave Extension",
+      "type": "chrome",
+      "request": "attach",
+      "port": 9222,
+      "webRoot": "${workspaceFolder}/src",
+      "sourceMaps": true,
+      "skipFiles": [
+        "<node_internals>/**",
+        "**/node_modules/**",
+        "**/react-dom/**",
+        "**/react/**",
+        "**/VM*.js"
+      ],
+      "trace": true,
+      "runtimeExecutable": "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser"
+    },
+    {
+      "name": "🐛 Debug Background Script",
+      "type": "chrome",
+      "request": "launch",
+      "url": "chrome://extensions/",
+      "webRoot": "${workspaceFolder}/src",
+      "sourceMaps": true,
+      "userDataDir": "${workspaceFolder}/.vscode/brave-debug-profile",
+      "runtimeExecutable": "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser",
+      "runtimeArgs": [
+        "--load-extension=${workspaceFolder}/dist",
+        "--disable-extensions-except=${workspaceFolder}/dist",
+        "--disable-features=TranslateUI",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--disable-default-apps"
+      ],
+      "trace": true
+    },
+    {
+      "name": "🌐 Debug Content Script",
+      "type": "chrome",
+      "request": "launch",
+      "url": "https://www.google.com",
+      "webRoot": "${workspaceFolder}/src",
+      "sourceMaps": true,
+      "userDataDir": "${workspaceFolder}/.vscode/brave-debug-profile",
+      "runtimeExecutable": "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser",
+      "runtimeArgs": [
+        "--load-extension=${workspaceFolder}/dist",
+        "--disable-extensions-except=${workspaceFolder}/dist",
+        "--disable-features=TranslateUI",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--disable-default-apps"
+      ],
+      "trace": true
+    }
+  ]
+} 

@@ -1,0 +1,29 @@
+1. ワークスペースは必ずchrome-extension-vite-sampleディレクトリ直下で開くこと。
+2. デバッグ設定（.vscode/launch.json）はワークスペース直下のものを使用すること。
+3. Braveブラウザでの開発・デバッグを推奨する。
+4. Braveは./start-brave-debug.shでデバッグモード起動すること。
+5. デバッグ時は「Attach to Brave Extension」または「Launch Brave Extension」を選択すること。
+6. launch.jsonのパス指定はワークスペース階層に合わせて調整すること。
+7. 企業管理ChromeではなくBraveで拡張機能をテスト・デバッグすること。
+8. ホットリロード・TypeScript・React・ソースマップを有効にして開発すること。
+9. トラブル時はREADMEのトラブルシューティングを参照すること。
+10. ワークスペースファイル（chrome-extension.code-workspace）も活用可能とする。
+11. ルールや経緯は.cursor/rules_background/chrome-extension.mdに記載すること。
+12. 新しい開発者・エージェントは必ずこのルールを最初に確認すること。
+13. ルールに変更があった場合は必ず背景ファイルも更新すること。
+14. 重要な運用ノウハウ・注意点はREADMEにも明記すること。
+15. 企業管理Chromeの制限回避策としてBraveを選択した経緯を背景ファイルに記載すること。
+16. launch.jsonのwebRootやruntimeArgsのパスはワークスペース階層依存であることを明記すること。
+17. デバッグ設定が認識されない場合はワークスペース階層を見直すこと。
+18. Braveのパスやビルド状況もトラブル時に確認すること。
+19. ルールファイルは25行以内を目安とし、肥大化時は分割すること。
+20. ルールと背景ファイルの命令・見出しは1対1で対応させること。
+21. ルール策定時は.cursor/rules_background/chrome-extension.mdに経緯・実例を記載すること。
+22. ルールファイルのフロントマターはAuto Attachedを意識して設定すること。
+23. ルールの変更・追加時は必ず全体の整合性を確認すること。
+24. ルールの記載例・書き方はhttps://docs.cursor.com/context/rules を参照すること。
+25. ルールは日本語で記載すること。
+description:
+globs:
+alwaysApply: false
+---

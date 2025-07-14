@@ -1,0 +1,19 @@
+{
+  "folders": [
+    {
+      "name": "Chrome Extension Debug",
+      "path": "."
+    }
+  ],
+  "settings": {
+    "typescript.preferences.includePackageJsonAutoImports": "on",
+    "typescript.suggest.autoImports": true,
+    "debug.javascript.autoAttachFilter": "smart"
+  },
+  "extensions": {
+    "recommendations": [
+      "ms-vscode.vscode-typescript-next",
+      "ms-vscode.vscode-js-debug"
+    ]
+  }
+} 
