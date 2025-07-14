@@ -14,6 +14,8 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   console.log("Background received message:", message);
   
   if (message.action === 'updateCount') {
+    debugger; // Service Workerでも確実に停止
+    
     console.log("Count updated to:", message.count);
     
     // Content scriptにメッセージを送信（エラーハンドリング付き）
