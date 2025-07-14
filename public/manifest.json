@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "Chrome Extension TypeScript Debug Sample",
+  "version": "1.0.0",
+  "description": "TypeScript Chrome Extension with debugging support",
+  "permissions": [
+    "activeTab",
+    "storage"
+  ],
+  "action": {
+    "default_popup": "src/popup.html",
+    "default_title": "Extension Popup"
+  },
+  "background": {
+    "service_worker": "src/background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["src/content.js"]
+    }
+  ]
+} 
