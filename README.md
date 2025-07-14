@@ -9,6 +9,8 @@ TypeScript + React + Vite を使用したChrome拡張機能の開発環境です
 - **ホットリロード**対応
 - **ソースマップ**対応
 - **Cursor/VSCode**でのブレークポイントデバッグ
+- **ポート9222でのプロセス管理**（通常のBraveブラウザに影響なし）
+- **デバッグプロファイル管理**（保持・リセット機能）
 
 ## 📋 前提条件
 
@@ -35,6 +37,8 @@ npm run build
 
 ### 2. Braveをデバッグモードで起動
 ```bash
+npm run start:brave:debug
+# または
 ./start-brave-debug.sh
 ```
 
@@ -43,7 +47,21 @@ npm run build
 2. 「Launch Brave Extension」または「Attach to Brave Extension」を選択
 3. ▶️ボタンでデバッグ開始
 
-### 4. ブレークポイントの設定
+### 4. デバッグ終了
+```bash
+npm run stop:brave:debug
+# または
+./stop-brave-debug.sh
+```
+
+### 5. デバッグ環境リセット（オプション）
+```bash
+npm run reset:brave:debug
+# または
+./reset-brave-debug.sh
+```
+
+### 6. ブレークポイントの設定
 - `src/background.ts`、`src/popup.tsx`、`src/content.ts`にブレークポイントを設定
 - `debugger;`文を使用して強制的に停止することも可能
 

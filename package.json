@@ -11,7 +11,9 @@
     "build:extension": "vite build --mode production",
     "dev:extension": "vite build --mode development --watch",
     "start:brave": "./start-brave.sh",
-    "start:brave:debug": "./start-brave-debug.sh"
+    "start:brave:debug": "./start-brave-debug.sh",
+    "stop:brave:debug": "./stop-brave-debug.sh",
+    "reset:brave:debug": "./reset-brave-debug.sh"
   },
   "dependencies": {
     "react": "^19.1.0",
