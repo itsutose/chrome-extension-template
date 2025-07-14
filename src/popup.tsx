@@ -44,9 +44,16 @@ const Popup: React.FC = () => {
     chrome.runtime.sendMessage({ action: 'updateCount', count: newCount });
   };
 
+  const handleCountClick2 = () => {
+    const newCount = count - 1;
+    setCount(newCount);
+    chrome.storage.sync.set({ count: newCount });
+    chrome.runtime.sendMessage({ action: 'updateCount', count: newCount });
+  };
+
   return (
     <div className="popup-container">
-      <h1>Chrome Extension Debug Sample</h1>
+      <h1>Chrome Extension Debug Sample - HOT</h1>
       <div className="tab-info">
         <p>現在のタブ: {currentTab}</p>
       </div>
@@ -54,7 +61,13 @@ const Popup: React.FC = () => {
         <button onClick={handleCountClick}>
           カウント: {count}
         </button>
-        <p>ボタンをクリックしてカウントを増やす</p>
+        <p>ボタンをクリックしてカウントを増やす - </p>
+      </div>
+      <div className="counter-section">
+        <button onClick={handleCountClick2}>
+          カウント: {count}
+        </button>
+        <p>ボタンをクリックしてカウントを減らす - </p>
       </div>
     </div>
   );

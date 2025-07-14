@@ -1,5 +1,5 @@
 // コンテンツスクリプト
-console.log("Content script loaded!");
+console.log("Content script loaded! - HOT RELOAD TEST");
 
 // Background scriptからのメッセージを受信
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {

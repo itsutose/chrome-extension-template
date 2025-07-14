@@ -13,7 +13,12 @@
     "start:brave": "./start-brave.sh",
     "start:brave:debug": "./start-brave-debug.sh",
     "stop:brave:debug": "./stop-brave-debug.sh",
-    "reset:brave:debug": "./reset-brave-debug.sh"
+    "reset:brave:debug": "./reset-brave-debug.sh",
+    "auto-reload": "node scripts/auto-reload.js",
+    "auto-reload:advanced": "node scripts/auto-reload-advanced.js",
+    "dev:full": "concurrently \"npm run dev:extension\" \"npm run auto-reload\"",
+    "dev:simple": "npm run dev:extension",
+    "dev:auto": "npm run auto-reload"
   },
   "dependencies": {
     "react": "^19.1.0",
@@ -25,6 +30,7 @@
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
     "@vitejs/plugin-react": "^4.6.0",
+    "concurrently": "^9.1.0",
     "eslint": "^9.30.1",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",

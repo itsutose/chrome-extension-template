@@ -32,36 +32,64 @@ npm run build
 
 ### 1. 拡張機能のビルド
 ```bash
-npm run build
+# 開発モード（監視モード）
+npm run dev:extension
+
+# 本番モード
+npm run build:extension
 ```
 
-### 2. Braveをデバッグモードで起動
+### 2. ホットリロード機能
+
+Chrome拡張機能の開発では、ファイル変更時に自動的に拡張機能をリロードする機能を提供しています。
+
+#### 基本的な自動リロード
+```bash
+npm run auto-reload
+```
+
+#### 高度な自動リロード（Chrome拡張機能ページを自動で開く）
+```bash
+npm run auto-reload:advanced
+```
+
+#### 完全な開発環境（ビルド監視 + 自動リロード）
+```bash
+npm run dev:full
+```
+
+**注意**: Chrome拡張機能の特性上、完全なホットリロードは制限があります：
+- Service Worker（background script）は手動リロードが必要
+- Content Scriptsはページリロード時に再読み込み
+- Popupは拡張機能の再読み込みが必要
+
+### 3. Braveをデバッグモードで起動
 ```bash
 npm run start:brave:debug
 # または
 ./start-brave-debug.sh
 ```
 
-### 3. Cursor/VSCodeでデバッグ
+### 4. Cursor/VSCodeでデバッグ
 1. サイドバーの「Run and Debug」を開く
 2. 「Launch Brave Extension」または「Attach to Brave Extension」を選択
 3. ▶️ボタンでデバッグ開始
 
-### 4. デバッグ終了
+### 5. デバッグ終了
 ```bash
 npm run stop:brave:debug
 # または
 ./stop-brave-debug.sh
 ```
 
-### 5. デバッグ環境リセット（オプション）
+### 6. デバッグ環境リセット（オプション）
 ```bash
 npm run reset:brave:debug
 # または
 ./reset-brave-debug.sh
 ```
 
-### 6. ブレークポイントの設定
+### 7. ブレークポイントの設定
 - `src/background.ts`、`src/popup.tsx`、`src/content.ts`にブレークポイントを設定
 - `debugger;`文を使用して強制的に停止することも可能
 
