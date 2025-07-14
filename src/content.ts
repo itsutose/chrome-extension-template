@@ -1,76 +1,39 @@
 // コンテンツスクリプト
-console.log('Content script loaded on:', window.location.href);
+console.log("Content script loaded!");
 
 // Background scriptからのメッセージを受信
-chrome.runtime.onMessage.addListener((request, _sender, _sendResponse) => {
-  console.log('Content script received message:', request);
+chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+  console.log("Content script received message:", message);
   
-  if (request.action === 'displayCount') {
-    // ここでブレークポイントを設定できます
-    const count = request.count;
+  if (message.action === 'updateCount') {
+    console.log("Displaying count:", message.count);
     
-    // カウントを画面に表示
-    displayCountOnPage(count);
+    // ページにカウントを表示
+    const countElement = document.getElementById('extension-count');
+    if (countElement) {
+      countElement.textContent = `Extension Count: ${message.count}`;
+    } else {
+      // 要素が存在しない場合は作成
+      const newElement = document.createElement('div');
+      newElement.id = 'extension-count';
+      newElement.textContent = `Extension Count: ${message.count}`;
+      newElement.style.cssText = `
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        background: #007bff;
+        color: white;
+        padding: 10px;
+        border-radius: 5px;
+        z-index: 10000;
+        font-family: Arial, sans-serif;
+      `;
+      document.body.appendChild(newElement);
+    }
+    
+    sendResponse({ success: true });
   }
-  
-  return true;
 });
 
-// ページにカウントを表示する関数
-function displayCountOnPage(count: number) {
-  // 既存の表示を削除
-  const existingDisplay = document.getElementById('chrome-extension-count-display');
-  if (existingDisplay) {
-    existingDisplay.remove();
-  }
-  
-  // カウント表示用のdiv要素を作成
-  const countDisplay = document.createElement('div');
-  countDisplay.id = 'chrome-extension-count-display';
-  countDisplay.style.position = 'fixed';
-  countDisplay.style.top = '10px';
-  countDisplay.style.right = '10px';
-  countDisplay.style.backgroundColor = '#4CAF50';
-  countDisplay.style.color = 'white';
-  countDisplay.style.padding = '10px';
-  countDisplay.style.borderRadius = '4px';
-  countDisplay.style.fontSize = '14px';
-  countDisplay.style.zIndex = '9999';
-  countDisplay.style.fontFamily = 'Arial, sans-serif';
-  countDisplay.textContent = `カウント: ${count}`;
-  
-  // ページに追加
-  document.body.appendChild(countDisplay);
-  
-  // 3秒後に自動的に削除
-  setTimeout(() => {
-    const display = document.getElementById('chrome-extension-count-display');
-    if (display) {
-      display.remove();
-    }
-  }, 3000);
-}
-
-// デバッグ用の関数
-function debugFunction() {
-  console.log('Debug function called');
-  
-  // ここにブレークポイントを設定してデバッグできます
-  const currentUrl = window.location.href;
-  const pageTitle = document.title;
-  
-  console.log('Current URL:', currentUrl);
-  console.log('Page title:', pageTitle);
-  
-  return {
-    url: currentUrl,
-    title: pageTitle,
-    timestamp: new Date().toISOString()
-  };
-}
-
-// DOM読み込み完了時の処理
-document.addEventListener('DOMContentLoaded', () => {
-  console.log('DOM loaded in content script');
-  debugFunction();
-}); 
+// ページ読み込み完了時の処理
+console.log("Content script initialized on:", window.location.href); 

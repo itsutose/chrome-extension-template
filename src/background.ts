@@ -9,35 +9,33 @@ chrome.runtime.onInstalled.addListener(() => {
   chrome.storage.sync.set({ count: 0 });
 });
 
-// メッセージリスナー
-chrome.runtime.onMessage.addListener((request, _sender, _sendResponse) => {
-  console.log('Background received message:', request);
+// メッセージ受信
+chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+  console.log("Background received message:", message);
   
-  if (request.action === 'updateCount') {
-    console.log('Count updated to:', request.count);
+  if (message.action === 'updateCount') {
+    console.log("Count updated to:", message.count);
     
-    // ここでブレークポイントを設定できます
-    const newCount = request.count;
-    
-    // Content scriptにメッセージを送信
+    // Content scriptにメッセージを送信（エラーハンドリング付き）
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       if (tabs[0] && tabs[0].id) {
-        chrome.tabs.sendMessage(tabs[0].id, {
-          action: 'displayCount',
-          count: newCount
+        chrome.tabs.sendMessage(tabs[0].id, { 
+          action: 'updateCount', 
+          count: message.count 
+        }).catch((error) => {
+          console.log("Content script not available:", error.message);
         });
       }
     });
+    
+    sendResponse({ success: true });
   }
-  
-  // 非同期応答の場合はtrueを返す
-  return true;
 });
 
-// タブの更新をリッスン
+// タブ更新時の処理
 chrome.tabs.onUpdated.addListener((_tabId, changeInfo, tab) => {
-  if (changeInfo.status === 'complete') {
-    console.log('Tab updated:', tab.url);
+  if (changeInfo.status === 'complete' && tab.url) {
+    console.log("Tab updated:", tab.url);
   }
 });
 

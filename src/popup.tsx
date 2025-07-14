@@ -62,7 +62,7 @@ const Popup: React.FC = () => {
 
 // ポップアップをレンダリング
 console.log("Starting popup rendering..."); // デバッグ用
-const container = document.getElementById('popup-root');
+const container = document.getElementById('root');
 if (container) {
   console.log("Container found, creating root..."); // デバッグ用
   const root = createRoot(container);
