@@ -72,7 +72,10 @@ npm run start:brave:debug
 
 ### 4. Cursor/VSCodeでデバッグ
 1. サイドバーの「Run and Debug」を開く
-2. 「Launch Brave Extension」または「Attach to Brave Extension」を選択
+2. 以下のいずれかを選択：
+   - **🚀 Launch Brave Extension (9222)**: 新しいBrave Browserを9222ポートで起動（推奨）
+   - **🚀 Launch Brave Extension (Legacy)**: 新しいBrave Browserを起動（従来方式）
+   - **🔗 Attach to Brave Extension**: 既存のBrave Browser（9222ポート）に接続
 3. ▶️ボタンでデバッグ開始
 
 ### 5. デバッグ終了
