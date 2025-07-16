@@ -12,6 +12,23 @@ TypeScript + React + Vite を使用したChrome拡張機能の開発環境です
 - **ポート9222でのプロセス管理**（通常のBraveブラウザに影響なし）
 - **デバッグプロファイル管理**（保持・リセット機能）
 
+### 概要
+```bash
+# ホットリロードの監視と
+npm run dev:auto
+```
+↓ これが立ち上がっている最中はホットリロードされる
+```
+▶️ <デバッグから以下を実行>
+🚀Launch Brave Extension (9222) ~~
+```
+
+もし、「他のbraveアプリが起動しています」が出たら
+```bash
+./stop-brave-debug.sh
+```
+↑でbraveを9222で起動することで管理しやすくしている。
+
 ## 📋 前提条件
 
 - Node.js 18以上
@@ -43,6 +60,8 @@ npm run build:extension
 
 Chrome拡張機能の開発では、ファイル変更時に自動的に拡張機能をリロードする機能を提供しています。
 
+<font color="red">※ 現状、npm run dev:auto で十分auto-reloadっぽく振る舞える。↓との違いは分かってない</font>
+
 #### 基本的な自動リロード
 ```bash
 npm run auto-reload
@@ -53,10 +72,10 @@ npm run auto-reload
 npm run auto-reload:advanced
 ```
 
-#### 完全な開発環境（ビルド監視 + 自動リロード）
+<!-- #### 完全な開発環境（ビルド監視 + 自動リロード）
 ```bash
 npm run dev:full
-```
+``` -->
 
 **注意**: Chrome拡張機能の特性上、完全なホットリロードは制限があります：
 - Service Worker（background script）は手動リロードが必要
