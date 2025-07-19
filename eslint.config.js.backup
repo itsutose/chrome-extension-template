@@ -1,0 +1,113 @@
+import js from '@eslint/js'
+import reactHooks from 'eslint-plugin-react-hooks'
+import reactRefresh from 'eslint-plugin-react-refresh'
+import { globalIgnores } from 'eslint/config'
+import globals from 'globals'
+import tseslint from 'typescript-eslint'
+
+export default tseslint.config([
+  globalIgnores(['dist', 'node_modules']),
+  {
+    files: ['eslint.config.js'],
+    rules: {
+      'sort-imports': 'off',
+    },
+  },
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      js.configs.recommended,
+      tseslint.configs.recommended,
+      tseslint.configs.recommendedTypeChecked,
+      reactHooks.configs['recommended-latest'],
+      reactRefresh.configs.vite,
+    ],
+    languageOptions: {
+      ecmaVersion: 2020,
+      globals: {
+        ...globals.browser,
+        chrome: 'readonly',
+      },
+      parserOptions: {
+        project: ['./tsconfig.app.json', './tsconfig.node.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+    rules: {
+      '@typescript-eslint/no-unused-vars': 'error',
+      '@typescript-eslint/no-explicit-any': 'warn',
+      'no-debugger': 'error',
+      'no-console': 'warn',
+      'prefer-const': 'error',
+      'no-var': 'error',
+      'no-multiple-empty-lines': ['error', { max: 1, maxEOF: 1, maxBOF: 0 }],
+      'eol-last': 'error',
+      'no-trailing-spaces': 'error',
+      'no-mixed-spaces-and-tabs': 'error',
+      'lines-between-class-members': 'error',
+      'padding-line-between-statements': 'error',
+      'object-curly-spacing': ['error', 'always'],
+      'array-bracket-spacing': 'error',
+      'comma-spacing': 'error',
+      'key-spacing': 'error',
+      'keyword-spacing': 'error',
+      'space-before-blocks': 'error',
+      'space-before-function-paren': 'error',
+      'space-in-parens': 'error',
+      'space-infix-ops': 'error',
+      'space-unary-ops': 'error',
+      'sort-imports': ['error', {
+        ignoreCase: false,
+        ignoreDeclarationSort: false,
+        ignoreMemberSort: false,
+        memberSyntaxSortOrder: ['single', 'multiple', 'all', 'none'],
+        allowSeparatedGroups: true,
+      }],
+    },
+  },
+  {
+    files: ['**/*.{js,jsx}'],
+    extends: [
+      js.configs.recommended,
+      reactHooks.configs['recommended-latest'],
+      reactRefresh.configs.vite,
+    ],
+    languageOptions: {
+      ecmaVersion: 2020,
+      globals: {
+        ...globals.browser,
+        chrome: 'readonly',
+      },
+    },
+    rules: {
+      'no-unused-vars': 'error',
+      'no-debugger': 'error',
+      'no-console': 'warn',
+      'prefer-const': 'error',
+      'no-var': 'error',
+      'no-multiple-empty-lines': ['error', { max: 1, maxEOF: 1, maxBOF: 0 }],
+      'eol-last': 'error',
+      'no-trailing-spaces': 'error',
+      'no-mixed-spaces-and-tabs': 'error',
+      'lines-between-class-members': 'error',
+      'padding-line-between-statements': 'error',
+      'object-curly-spacing': ['error', 'always'],
+      'array-bracket-spacing': 'error',
+      'comma-spacing': 'error',
+      'key-spacing': 'error',
+      'keyword-spacing': 'error',
+      'space-before-blocks': 'error',
+      'space-before-function-paren': 'error',
+      'space-in-parens': 'error',
+      'space-infix-ops': 'error',
+      'space-unary-ops': 'error',
+      'sort-imports': ['error', {
+        ignoreCase: false,
+        ignoreDeclarationSort: false,
+        ignoreMemberSort: false,
+        memberSyntaxSortOrder: ['single', 'multiple', 'all', 'none'],
+        allowSeparatedGroups: true,
+      }],
+    },
+  },
+])
