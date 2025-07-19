@@ -1,11 +1,9 @@
 #!/usr/bin/env node
 
 import { exec } from 'child_process';
-import { watch } from 'fs';
-import { join } from 'path';
+import { readFileSync, watch } from 'fs';
+import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
-import { dirname } from 'path';
-import { readFileSync, writeFileSync } from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -33,7 +31,8 @@ function getExtensionId() {
   try {
     const manifestPath = join(projectRoot, 'dist', 'manifest.json');
     const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
-    
+
+
     // 開発モードでは拡張機能IDは動的に生成されるため、
     // chrome://extensions/で確認する必要があります
     return null;
@@ -46,10 +45,10 @@ function getExtensionId() {
 // Chrome拡張機能をリロードする関数（より高度な版）
 function reloadExtensionAdvanced() {
   if (isReloading) return;
-  
+
   isReloading = true;
   console.log('🔄 Reloading extension...');
-  
+
   // ビルドを実行
   exec('npm run build:extension', { cwd: projectRoot }, (error, stdout, stderr) => {
     if (error) {
@@ -57,9 +56,9 @@ function reloadExtensionAdvanced() {
       isReloading = false;
       return;
     }
-    
+
     console.log('✅ Build completed');
-    
+
     // Brave Browserをアクティブにして拡張機能ページを開く
     const appleScript = `
       tell application "Brave Browser"
@@ -77,7 +76,7 @@ function reloadExtensionAdvanced() {
         end tell
       end tell
     `;
-    
+
     exec(`osascript -e '${appleScript}'`, (error) => {
       if (error) {
         console.log('⚠️  Could not automatically reload extension');
@@ -90,7 +89,7 @@ function reloadExtensionAdvanced() {
         console.log('   Please click the reload button (🔄) on chrome://extensions/');
       }
     });
-    
+
     isReloading = false;
   });
 }
@@ -98,22 +97,22 @@ function reloadExtensionAdvanced() {
 // ファイル変更を監視する関数
 function watchDirectory(dirPath) {
   console.log(`👀 Watching directory: ${dirPath}`);
-  
+
   watch(dirPath, { recursive: true }, (eventType, filename) => {
     if (!filename) return;
-    
+
     // 除外パターンをチェック
     if (IGNORE_PATTERNS.some(pattern => pattern.test(filename))) {
       return;
     }
-    
+
     console.log(`📝 File changed: ${filename}`);
-    
+
     // デバウンス処理（連続した変更をまとめる）
     if (reloadTimeout) {
       clearTimeout(reloadTimeout);
     }
-    
+
     reloadTimeout = setTimeout(() => {
       reloadExtensionAdvanced();
     }, 1000); // 1秒のデバウンス
@@ -142,4 +141,4 @@ process.on('SIGINT', () => {
 
 process.on('uncaughtException', (error) => {
   console.error('❌ Uncaught Exception:', error);
-}); 
+});

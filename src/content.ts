@@ -1,13 +1,18 @@
 // コンテンツスクリプト
-console.log("Content script loaded! - HOT RELOAD TEST");
+console.log('Content script loaded! - HOT RELOAD TEST');
+
+type Message = {
+  action: 'updateCount';
+  count: number;
+}
 
 // Background scriptからのメッセージを受信
-chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-  console.log("Content script received message:", message);
-  
+chrome.runtime.onMessage.addListener((message: Message, _sender, sendResponse) => {
+  console.log('Content script received message:', message);
+
   if (message.action === 'updateCount') {
-    console.log("Displaying count:", message.count);
-    
+    console.log('Displaying count:', message.count);
+
     // ページにカウントを表示
     const countElement = document.getElementById('extension-count');
     if (countElement) {
@@ -30,10 +35,10 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       `;
       document.body.appendChild(newElement);
     }
-    
+
     sendResponse({ success: true });
   }
 });
 
 // ページ読み込み完了時の処理
-console.log("Content script initialized on:", window.location.href); 
+console.log('Content script initialized on:', window.location.href);
