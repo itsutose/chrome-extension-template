@@ -12,12 +12,23 @@ export default defineConfig({
     })
   ],
   build: {
-    sourcemap: true,
+    sourcemap: 'inline',
     minify: false,
     rollupOptions: {
       output: {
-        sourcemapExcludeSources: false
+        sourcemapExcludeSources: false,
+        sourcemapPathTransform: (relativeSourcePath) => {
+          return relativeSourcePath.replace(/^\.\.\//, '');
+        }
       }
     }
+  },
+  server: {
+    hmr: {
+      port: 24678
+    }
+  },
+  define: {
+    __DEV__: true
   }
 })

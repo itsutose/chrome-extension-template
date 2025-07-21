@@ -98,6 +98,61 @@
       ],
       "trace": true,
       "runtimeExecutable": "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser"
+    },
+    {
+      "name": "🐛 Debug Content Script",
+      "type": "chrome",
+      "request": "launch",
+      "url": "https://example.com",
+      "webRoot": "${workspaceFolder}",
+      "sourceMaps": true,
+      "userDataDir": "${workspaceFolder}/.vscode/brave-debug-profile",
+      "skipFiles": [
+        "<node_internals>/**",
+        "**/node_modules/**",
+        "**/react-dom/**",
+        "**/react/**",
+        "**/VM**.js",
+        "**/VM**",
+        "**/VM*.*",
+        "**/VM*",
+        "<eval>/**",
+        "<eval>/*",
+        "VM**",
+        "VM*",
+        "VM*.*"
+      ],
+      "runtimeExecutable": "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser",
+      "runtimeArgs": [
+        "--remote-debugging-port=9222",
+        "--load-extension=${workspaceFolder}/dist",
+        "--disable-extensions-except=${workspaceFolder}/dist",
+        "--disable-features=TranslateUI",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--disable-default-apps",
+        "--disable-component-extensions-with-background-pages",
+        "--disable-background-networking",
+        "--disable-client-side-phishing-detection",
+        "--disable-sync",
+        "--metrics-recording-only",
+        "--disable-backgrounding-occluded-windows",
+        "--disable-renderer-backgrounding",
+        "--disable-background-timer-throttling",
+        "--disable-ipc-flooding-protection",
+        "--password-store=basic",
+        "--use-mock-keychain"
+      ],
+      "trace": true,
+      "sourceMapPathOverrides": {
+        "webpack:///./src/*": "${webRoot}/src/*",
+        "webpack:///src/*": "${webRoot}/src/*",
+        "webpack:///*": "*",
+        "webpack:///./~/*": "${webRoot}/node_modules/*",
+        "/src/*": "${webRoot}/src/*",
+        "src/*": "${webRoot}/src/*",
+        "./src/*": "${webRoot}/src/*"
+      }
     }
   ]
 } 
