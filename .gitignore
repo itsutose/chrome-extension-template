@@ -93,4 +93,5 @@ temp/
 
 # Debug profile (keep the directory but ignore contents)
 .vscode/brave-debug-profile/*
+.vscode/brave-debug-background/*
 !.vscode/brave-debug-profile/.gitkeep
