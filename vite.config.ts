@@ -1,6 +1,6 @@
-import react from '@vitejs/plugin-react'
-import { defineConfig } from 'vite'
-import webExtension from 'vite-plugin-web-extension'
+import react from '@vitejs/plugin-react';
+import { defineConfig } from 'vite';
+import webExtension from 'vite-plugin-web-extension';
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -18,17 +18,21 @@ export default defineConfig({
       output: {
         sourcemapExcludeSources: false,
         sourcemapPathTransform: (relativeSourcePath) => {
-          return relativeSourcePath.replace(/^\.\.\//, '');
+          // 正しいソースマップパスを生成
+          if (relativeSourcePath.startsWith('../../')) {
+            return relativeSourcePath.substring(6); // "../../src/" -> "src/"
+          }
+          return relativeSourcePath;
         }
       }
     }
+  },
+  define: {
+    __DEV__: true
   },
   server: {
     hmr: {
       port: 24678
     }
-  },
-  define: {
-    __DEV__: true
   }
 })

@@ -6,7 +6,7 @@
       "type": "chrome",
       "request": "launch",
       "url": "chrome://extensions/",
-      "webRoot": "${workspaceFolder}/src",
+      "webRoot": "${workspaceFolder}",
       "sourceMaps": true,
       "userDataDir": "${workspaceFolder}/.vscode/brave-debug-profile",
       "skipFiles": [
@@ -48,7 +48,11 @@
         "webpack:///./~/*": "${webRoot}/node_modules/*",
         "/src/*": "${webRoot}/src/*",
         "src/*": "${webRoot}/src/*",
-        "./src/*": "${webRoot}/src/*"
+        "./src/*": "${webRoot}/src/*",
+        "vite:///./src/*": "${webRoot}/src/*",
+        "vite:///src/*": "${webRoot}/src/*",
+        "vite:///*": "*",
+        "../../src/*": "${webRoot}/src/*"
       }
     },
     {
@@ -56,7 +60,7 @@
       "type": "chrome",
       "request": "attach",
       "port": 9222,
-      "webRoot": "${workspaceFolder}/src",
+      "webRoot": "${workspaceFolder}",
       "sourceMaps": true,
       "skipFiles": [
         "<node_internals>/**",
@@ -74,7 +78,11 @@
         "webpack:///./~/*": "${webRoot}/node_modules/*",
         "/src/*": "${webRoot}/src/*",
         "src/*": "${webRoot}/src/*",
-        "./src/*": "${webRoot}/src/*"
+        "./src/*": "${webRoot}/src/*",
+        "vite:///./src/*": "${webRoot}/src/*",
+        "vite:///src/*": "${webRoot}/src/*",
+        "vite:///*": "*",
+        "../../src/*": "${webRoot}/src/*"
       }
     },
     // {
