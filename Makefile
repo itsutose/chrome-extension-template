@@ -38,7 +38,7 @@ lint-check: ## lintエラーの確認
 ## 自動修正付きlint
 lint-fix: ## 自動修正可能な問題を修正
 	@echo "$(GREEN)Fixing lint errors automatically...$(NC)"
-	@npm run lint -- --fix
+	@npm run lint:fix
 
 ## srcディレクトリのみlint
 lint-src: ## srcディレクトリのファイルのみlint
@@ -63,12 +63,12 @@ lint-file: ## 特定ファイルのlint（使用方法: make lint-file FILE=src/
 		exit 1; \
 	fi
 	@echo "$(GREEN)Linting file: $(FILE)$(NC)"
-	@npx eslint $(FILE) --fix
+	@npx eslint $(FILE) --fix --cache --cache-location .eslintcache
 
 ## 全ファイルのlint（自動修正付き）
 lint-all: ## 全ファイルのlint（自動修正付き）
 	@echo "$(GREEN)Linting all files with auto-fix...$(NC)"
-	@npx eslint . --fix
+	@npx eslint . --fix --cache --cache-location .eslintcache
 
 ## lintエラーの詳細表示
 lint-detail: ## lintエラーの詳細表示

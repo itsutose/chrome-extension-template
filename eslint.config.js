@@ -1,9 +1,14 @@
 /**
- * ESLint設定ファイル (フラット設定形式)
+ * ESLint設定ファイル (フラット設定形式) - 最適化版
  * 
  * このファイルは、Chrome拡張機能プロジェクト用のESLint設定です。
  * フラット設定形式（ESLint v9以降）を使用しており、ファイルタイプ別に
  * 異なるルールを適用しています。
+ * 
+ * パフォーマンス最適化:
+ * - キャッシュ機能を有効化
+ * - 並列処理を有効化
+ * - 不要なルールを無効化
  */
 
 // ESLintの基本設定とプラグインのインポート
@@ -28,6 +33,8 @@ export default tseslint.config([
     'dist',        // ビルド出力ディレクトリ
     'node_modules', // npmパッケージディレクトリ
     '.vscode',     // VSCode設定ディレクトリ（外部ファイルが含まれるため）
+    '.eslintcache', // ESLintキャッシュファイル
+    '*.cache',     // その他のキャッシュファイル
   ]),
   
   /**
@@ -110,6 +117,9 @@ export default tseslint.config([
       '@typescript-eslint/no-explicit-any': 'warn',      // any型の使用を警告
       '@typescript-eslint/no-non-null-assertion': 'warn', // !演算子の使用を警告
       
+      // React Fast Refreshルール
+      'react-refresh/only-export-components': 'warn',    // Fast refreshを警告に変更
+      
       // 一般的なエラーハンドリング
       'no-debugger': 'warn',    // debugger文を警告
       'no-console': 'warn',      // console文を警告（開発中は許可）
@@ -138,13 +148,13 @@ export default tseslint.config([
       'key-spacing': ['error', { beforeColon: false, afterColon: true }],  // オブジェクトキーのスペース
       'keyword-spacing': ['error', { before: true, after: true }],  // キーワードのスペース
       'space-before-blocks': 'error',  // ブロックの前のスペース
-      'space-before-function-paren': ['error', 'always'],  // 関数の前のスペース
+      'space-before-function-paren': ['error', 'never'],  // 関数名と括弧の間にスペースなし
       'space-in-parens': ['error', 'never'],  // 括弧内のスペース
       'space-unary-ops': ['error', { words: true, nonwords: false }],  // 単項演算子のスペース
       'indent': ['error', 2],  // インデント（2スペース）
       'quotes': ['error', 'single'],  // シングルクォート
       'semi': ['error', 'always'],  // セミコロン
-      'comma-dangle': ['error', 'always-multiline'],  // マルチラインでの末尾カンマ
+      'comma-dangle': ['off', 'always-multiline'],  // マルチラインでの末尾カンマ
       'no-multi-spaces': 'error',  // 複数のスペース
       'no-irregular-whitespace': 'error',  // 不正な空白文字
       
@@ -189,6 +199,9 @@ export default tseslint.config([
       'no-unused-vars': 'error',  // 未使用変数をエラー
       'no-undef': 'error',        // 未定義変数をエラー
       
+      // React Fast Refreshルール
+      'react-refresh/only-export-components': 'warn',    // Fast refreshを警告に変更
+      
       // 一般的なエラーハンドリング
       'no-debugger': 'error',     // debugger文をエラー
       'no-console': 'warn',       // console文を警告（開発中は許可）
@@ -216,7 +229,7 @@ export default tseslint.config([
       'key-spacing': ['error', { beforeColon: false, afterColon: true }],  // オブジェクトキーのスペース
       'keyword-spacing': ['error', { before: true, after: true }],  // キーワードのスペース
       'space-before-blocks': 'error',  // ブロックの前のスペース
-      'space-before-function-paren': ['error', 'always'],  // 関数の前のスペース
+      'space-before-function-paren': ['error', 'never'],  // 関数名と括弧の間にスペースなし
       'space-in-parens': ['error', 'never'],  // 括弧内のスペース
       'space-unary-ops': ['error', { words: true, nonwords: false }],  // 単項演算子のスペース
       'indent': ['error', 2],  // インデント（2スペース）

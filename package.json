@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "lint": "eslint .",
+    "lint": "eslint . --cache --cache-location .eslintcache",
+    "lint:fix": "eslint . --fix --cache --cache-location .eslintcache",
     "preview": "vite preview",
     "build:extension": "vite build --mode production",
     "dev:extension": "vite build --mode development --watch",
