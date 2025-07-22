@@ -49,38 +49,29 @@ npm run build
 
 ### 1. 拡張機能のビルド
 ```bash
-# 開発モード（監視モード）
-npm run dev:extension
-
 # 本番モード
 npm run build:extension
 ```
 
-### 2. ホットリロード機能
+### 2. 開発環境（ホットリロード）
 
-Chrome拡張機能の開発では、ファイル変更時に自動的に拡張機能をリロードする機能を提供しています。
+Braveブラウザでの開発に最適化された開発環境を提供しています。
 
-<font color="red">※ 現状、npm run dev:auto で十分auto-reloadっぽく振る舞える。↓との違いは分かってない</font>
-
-#### 基本的な自動リロード
+#### メイン開発コマンド
 ```bash
-npm run auto-reload
+npm run dev:auto
 ```
 
-#### 高度な自動リロード（Chrome拡張機能ページを自動で開く）
-```bash
-npm run auto-reload:advanced
-```
-
-<!-- #### 完全な開発環境（ビルド監視 + 自動リロード）
-```bash
-npm run dev:full
-``` -->
+このコマンドは以下を実行します：
+- ファイル変更の監視
+- 自動ビルド実行
+- Braveブラウザのアクティブ化
+- 拡張機能のリロード指示
 
 **注意**: Chrome拡張機能の特性上、完全なホットリロードは制限があります：
-- Service Worker（background script）は手動リロードが必要
-- Content Scriptsはページリロード時に再読み込み
-- Popupは拡張機能の再読み込みが必要
+- **Popup**: 自動で更新される（拡張機能を閉じて開く）
+- **Service Worker（background script）**: 手動リロードが必要
+- **Content Scripts**: ページリロード時に再読み込み
 
 ### 3. Braveをデバッグモードで起動
 ```bash
