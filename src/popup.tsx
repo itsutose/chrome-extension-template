@@ -3,6 +3,8 @@ import { createRoot } from 'react-dom/client';
 
 import './popup.css';
 
+debugger;
+
 export const Popup: React.FC = () => {
   // eslint-disable-next-line no-console
   console.log('Popup component rendering...'); // デバッグ用
@@ -37,7 +39,7 @@ export const Popup: React.FC = () => {
     });
   }, []);
 
-  const handleCountClick = async () => {
+  const handleCountClick = async() => {
     // ここにブレークポイントを設定（React内部処理をスキップ）
     // debugger; // 強制的にここで停止
 
@@ -57,7 +59,7 @@ export const Popup: React.FC = () => {
     });
   };
 
-  const handleCountClick2 = async () => {
+  const handleCountClick2 = async() => {
     const newCount = count - 1;
     setCount(newCount);
     await chrome.storage.sync.set({ count: newCount });
@@ -77,7 +79,7 @@ export const Popup: React.FC = () => {
         <button onClick={() => void handleCountClick()}>
           カウント: {count}
         </button>
-        <p>ボタンをクリックしてカウントを増やす ああああ</p>
+        <p>ボタンをクリックしてカウントを増やす いいい</p>
       </div>
       <div className="counter-section">
         <button onClick={() => void handleCountClick2()}>

@@ -1,6 +1,8 @@
 // バックグラウンドスクリプト
 console.log('background script loaded!');
 
+debugger;
+
 // 拡張機能のインストール時
 chrome.runtime.onInstalled.addListener(() => {
   console.log('onInstalled event fired!');
