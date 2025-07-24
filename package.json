@@ -5,10 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
     "lint": "eslint . --cache --cache-location .eslintcache",
     "lint:fix": "eslint . --fix --cache --cache-location .eslintcache",
     "preview": "vite preview",
+    "build": "tsc -b && vite build",
     "build:extension": "vite build --mode production",
     "start:brave": "./start-brave.sh",
     "start:brave:debug": "./start-brave-debug.sh",

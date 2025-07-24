@@ -93,5 +93,9 @@ temp/
 
 # Debug profile (keep the directory but ignore contents)
 .vscode/brave-debug-profile/*
+.vscode/brave-debug-profile-auto/*
 .vscode/brave-debug-background/*
 !.vscode/brave-debug-profile/.gitkeep
+
+tsconfig.app.tsbuildinfo
+tsconfig.node.tsbuildinfo
