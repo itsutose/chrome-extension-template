@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>シンプルテキスト - メモ機能テスト</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #555;
+            margin-top: 30px;
+        }
+        p {
+            margin-bottom: 15px;
+            color: #444;
+        }
+        .highlight {
+            background-color: #fff3cd;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+        .test-section {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+            background-color: #fafafa;
+        }
+        .test-section h3 {
+            color: #007bff;
+            margin-top: 0;
+        }
+        .navigation {
+            background: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .navigation a {
+            color: white;
+            text-decoration: none;
+            margin-right: 20px;
+        }
+        .navigation a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="navigation">
+        <a href="simple-text.html">シンプルテキスト</a>
+        <a href="news-article.html">ニュース記事</a>
+        <a href="blog-post.html">ブログ記事</a>
+        <a href="social-media.html">SNS風</a>
+        <a href="complex-layout.html">複雑レイアウト</a>
+    </div>
+
+    <div class="container">
+        <h1>シンプルテキストページ</h1>
+        <p>このページは、メモ機能の文字列選択・復元アルゴリズムの基本テスト用です。</p>
+        
+        <div class="test-section">
+            <h3>基本テキスト選択テスト</h3>
+            <p>この段落には基本的なテキストが含まれています。テキストを選択して右クリックメニューから「メモを作成」を選択してください。</p>
+            <p>複数の段落がある場合の動作も確認できます。各段落で異なるテキストを選択してテストしてください。</p>
+        </div>
+
+        <div class="test-section">
+            <h3>短いテキストテスト</h3>
+            <p>短いテキストの選択テストです。</p>
+            <p>単語レベルの選択もテストできます。</p>
+            <p>文字単位での選択も可能です。</p>
+        </div>
+
+        <div class="test-section">
+            <h3>長いテキストテスト</h3>
+            <p>この段落には長いテキストが含まれています。Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+            <p>長いテキストの選択は、復元アルゴリズムの精度をテストするのに適しています。特に、ページ内に同じテキストが複数存在する場合の動作を確認できます。</p>
+        </div>
+
+        <div class="test-section">
+            <h3>特殊文字テスト</h3>
+            <p>特殊文字を含むテキスト: ①②③④⑤⑥⑦⑧⑨⑩</p>
+            <p>記号を含むテキスト: !@#$%^&*()_+-=[]{}|;':",./<>?</p>
+            <p>日本語と英語の混在: これはEnglish textです。</p>
+            <p>数字を含むテキスト: 1234567890</p>
+        </div>
+
+        <div class="test-section">
+            <h3>重複テキストテスト</h3>
+            <p>このテキストは重複しています。</p>
+            <p>このテキストは重複しています。</p>
+            <p>このテキストは重複しています。</p>
+            <p>同じテキストが複数存在する場合、復元アルゴリズムが正しい位置を特定できるかをテストできます。</p>
+        </div>
+
+        <div class="test-section">
+            <h3>ネストした要素テスト</h3>
+            <div>
+                <p>ネストした要素内のテキストです。</p>
+                <div>
+                    <p>さらにネストした要素内のテキストです。</p>
+                    <span>span要素内のテキストも選択できます。</span>
+                </div>
+            </div>
+        </div>
+
+        <h2>テスト手順</h2>
+        <ol>
+            <li>任意のテキストを選択してください</li>
+            <li>右クリックメニューから「メモを作成」を選択してください</li>
+            <li>コンソールで位置情報の検証と復元シミュレーション結果を確認してください</li>
+            <li>ページをリロードして復元精度をテストしてください</li>
+        </ol>
+
+        <h2>期待される結果</h2>
+        <ul>
+            <li>選択したテキストの位置情報が正確に取得される</li>
+            <li>復元シミュレーションで同じ位置に正確に復元される</li>
+            <li>重複テキストの場合、適切な位置が特定される</li>
+            <li>特殊文字や長いテキストでも正常に動作する</li>
+        </ul>
+    </div>
+
+    <script>
+        // テスト用のヘルパー関数
+        window.testHelper = {
+            // ランダムなテキストを選択
+            selectRandomText: function() {
+                const paragraphs = document.querySelectorAll('p');
+                const randomParagraph = paragraphs[Math.floor(Math.random() * paragraphs.length)];
+                const text = randomParagraph.textContent;
+                const start = Math.floor(Math.random() * (text.length - 10));
+                const end = start + Math.floor(Math.random() * 20) + 5;
+                
+                const range = document.createRange();
+                range.setStart(randomParagraph.firstChild, start);
+                range.setEnd(randomParagraph.firstChild, end);
+                
+                const selection = window.getSelection();
+                selection.removeAllRanges();
+                selection.addRange(range);
+                
+                console.log('ランダムテキスト選択:', text.substring(start, end));
+            },
+            
+            // 特定のテキストを選択
+            selectText: function(searchText) {
+                const walker = document.createTreeWalker(
+                    document.body,
+                    NodeFilter.SHOW_TEXT,
+                    null
+                );
+                
+                let node;
+                while (node = walker.nextNode()) {
+                    const text = node.textContent;
+                    const index = text.indexOf(searchText);
+                    if (index !== -1) {
+                        const range = document.createRange();
+                        range.setStart(node, index);
+                        range.setEnd(node, index + searchText.length);
+                        
+                        const selection = window.getSelection();
+                        selection.removeAllRanges();
+                        selection.addRange(range);
+                        
+                        console.log('テキスト選択:', searchText);
+                        return;
+                    }
+                }
+                console.log('テキストが見つかりません:', searchText);
+            }
+        };
+        
+        console.log('=== シンプルテキストページ読み込み完了 ===');
+        console.log('テストヘルパー関数が利用可能です:');
+        console.log('- testHelper.selectRandomText(): ランダムなテキストを選択');
+        console.log('- testHelper.selectText("検索テキスト"): 特定のテキストを選択');
+    </script>
+</body>
+</html> 

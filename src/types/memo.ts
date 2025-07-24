@@ -50,3 +50,42 @@ export interface MemoError {
   timestamp: number;
   context?: any;
 }
+
+// テスト環境用の型定義
+export interface PositionValidationResult {
+  isValid: boolean;
+  accuracy: number; // 0-1の精度スコア
+  originalPosition: TextSelectionInfo;
+  restoredPosition: TextSelectionInfo | null;
+  error?: string;
+  timestamp: number;
+}
+
+export interface RestoreSimulationResult {
+  success: boolean;
+  originalInfo: TextSelectionInfo;
+  restoredInfo: TextSelectionInfo | null;
+  accuracy: number;
+  processingTime: number;
+  errors: string[];
+}
+
+export interface TestStatistics {
+  totalTests: number;
+  successfulRestores: number;
+  failedRestores: number;
+  averageAccuracy: number;
+  averageProcessingTime: number;
+  lastTestTime: number;
+}
+
+export interface TestData {
+  id: string;
+  pageUrl: string;
+  testCases: TextSelectionInfo[];
+  results: PositionValidationResult[];
+  statistics: TestStatistics;
+  createdAt: number;
+  updatedAt: number;
+  lastTestTime?: number;
+}

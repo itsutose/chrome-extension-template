@@ -1,0 +1,192 @@
+import type { RestoreSimulationResult, TextSelectionInfo } from '../types/memo';
+
+export class RestoreSimulator {
+  private static simulationHistory: RestoreSimulationResult[] = [];
+
+  static simulateRestore(originalInfo: TextSelectionInfo): RestoreSimulationResult {
+    const startTime = Date.now();
+    const errors: string[] = [];
+
+    try {
+      // 1. 復元シミュレーションを実行
+      const restoredInfo = this.performRestoreSimulation(originalInfo, errors);
+
+      // 2. 精度を計算
+      const accuracy = this.calculateRestoreAccuracy(originalInfo, restoredInfo);
+
+      // 3. 処理時間を計算
+      const processingTime = Date.now() - startTime;
+
+      // 4. 結果を作成
+      const result: RestoreSimulationResult = {
+        success: restoredInfo !== null,
+        originalInfo,
+        restoredInfo,
+        accuracy,
+        processingTime,
+        errors
+      };
+
+      // 5. 履歴に追加
+      this.simulationHistory.push(result);
+
+      return result;
+
+    } catch (error) {
+      const result: RestoreSimulationResult = {
+        success: false,
+        originalInfo,
+        restoredInfo: null,
+        accuracy: 0,
+        processingTime: Date.now() - startTime,
+        errors: [`Simulation error: ${error instanceof Error ? error.message : 'Unknown error'}`]
+      };
+
+      this.simulationHistory.push(result);
+      return result;
+    }
+  }
+
+  private static performRestoreSimulation(originalInfo: TextSelectionInfo, errors: string[]): TextSelectionInfo | null {
+    try {
+      // 1. テキストノードの検索
+      const textNodes = this.findAllTextNodes();
+      if (textNodes.length === 0) {
+        errors.push('No text nodes found on page');
+        return null;
+      }
+
+      // 2. 完全一致するテキストの検索
+      const exactMatch = this.findExactTextMatch(originalInfo.text, textNodes);
+
+      if (!exactMatch) {
+        errors.push('No exact text match found');
+        return null;
+      }
+
+      // 3. 復元された位置情報の作成
+      const restoredInfo: TextSelectionInfo = {
+        ...originalInfo,
+        startContainer: exactMatch.node,
+        endContainer: exactMatch.node,
+        startOffset: exactMatch.startOffset,
+        endOffset: exactMatch.endOffset,
+        boundingRect: this.calculateRestoredBoundingRect(exactMatch),
+        timestamp: Date.now()
+      };
+
+      return restoredInfo;
+
+    } catch (error) {
+      errors.push(`Simulation error: ${error instanceof Error ? error.message : 'Unknown'}`);
+      return null;
+    }
+  }
+
+  private static findAllTextNodes(): Text[] {
+    const textNodes: Text[] = [];
+    const walker = document.createTreeWalker(
+      document.body,
+      NodeFilter.SHOW_TEXT,
+      {
+        acceptNode: (node) => {
+          const text = node.textContent?.trim();
+          return text && text.length > 0 ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+        }
+      }
+    );
+
+    let node;
+    while (node = walker.nextNode()) {
+      textNodes.push(node as Text);
+    }
+
+    return textNodes;
+  }
+
+  private static findExactTextMatch(targetText: string, textNodes: Text[]): {
+    node: Text;
+    startOffset: number;
+    endOffset: number;
+  } | null {
+    for (const node of textNodes) {
+      const textContent = node.textContent || '';
+      const index = textContent.indexOf(targetText);
+
+      if (index !== -1) {
+        return {
+          node,
+          startOffset: index,
+          endOffset: index + targetText.length
+        };
+      }
+    }
+    return null;
+  }
+
+  private static calculateRestoredBoundingRect(match: {
+    node: Text;
+    startOffset: number;
+    endOffset: number;
+  }): DOMRect {
+    const range = document.createRange();
+    range.setStart(match.node, match.startOffset);
+    range.setEnd(match.node, match.endOffset);
+    return range.getBoundingClientRect();
+  }
+
+  private static calculateRestoreAccuracy(original: TextSelectionInfo, restored: TextSelectionInfo | null): number {
+    if (!restored) return 0;
+
+    // テキストの完全一致（1.0または0.0）
+    const textAccuracy = original.text === restored.text ? 1.0 : 0.0;
+
+    // 位置の一致度
+    const positionAccuracy = this.calculatePositionAccuracy(original.boundingRect, restored.boundingRect);
+
+    // 重み付き平均（テキスト: 60%, 位置: 40%）
+    return textAccuracy * 0.6 + positionAccuracy * 0.4;
+  }
+
+  private static calculatePositionAccuracy(originalRect: DOMRect, restoredRect: DOMRect): number {
+    const maxDistance = Math.max(window.innerWidth, window.innerHeight);
+    
+    const centerDistance = Math.sqrt(
+      Math.pow(originalRect.left + originalRect.width / 2 - (restoredRect.left + restoredRect.width / 2), 2) +
+      Math.pow(originalRect.top + originalRect.height / 2 - (restoredRect.top + restoredRect.height / 2), 2)
+    );
+
+    return Math.max(0, 1 - centerDistance / maxDistance);
+  }
+
+  static getSimulationHistory(): RestoreSimulationResult[] {
+    return [...this.simulationHistory];
+  }
+
+  static getStatistics(): {
+    totalSimulations: number;
+    successfulRestores: number;
+    failedRestores: number;
+    averageAccuracy: number;
+    averageProcessingTime: number;
+  } {
+    const total = this.simulationHistory.length;
+    const successful = this.simulationHistory.filter(result => result.success).length;
+    const failed = total - successful;
+    
+    const totalAccuracy = this.simulationHistory.reduce((sum, result) => sum + result.accuracy, 0);
+    const totalTime = this.simulationHistory.reduce((sum, result) => sum + result.processingTime, 0);
+
+    return {
+      totalSimulations: total,
+      successfulRestores: successful,
+      failedRestores: failed,
+      averageAccuracy: total > 0 ? totalAccuracy / total : 0,
+      averageProcessingTime: total > 0 ? totalTime / total : 0
+    };
+  }
+
+  static clearHistory(): void {
+    this.simulationHistory = [];
+  }
+} 

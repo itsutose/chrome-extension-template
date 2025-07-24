@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ブログ記事 - メモ機能テスト</title>
+    <style>
+        body {
+            font-family: 'Georgia', 'Times New Roman', serif;
+            line-height: 1.7;
+            margin: 0;
+            background-color: #fafafa;
+            color: #333;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 0;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+        .main-content {
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        .article {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+        .article-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .article-title {
+            font-size: 2.2em;
+            font-weight: 700;
+            margin: 0 0 20px 0;
+            line-height: 1.3;
+        }
+        .article-meta {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 30px;
+        }
+        .article-meta span {
+            margin: 0 15px;
+        }
+        .article-content {
+            font-size: 1.1em;
+            line-height: 1.8;
+        }
+        .article-content p {
+            margin-bottom: 25px;
+        }
+        .article-content h2 {
+            font-size: 1.8em;
+            margin: 50px 0 25px 0;
+            color: #2c3e50;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 10px;
+        }
+        .article-content h3 {
+            font-size: 1.4em;
+            margin: 35px 0 20px 0;
+            color: #34495e;
+        }
+        .article-content blockquote {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px 25px;
+            margin: 30px 0;
+            font-style: italic;
+            font-size: 1.1em;
+            color: #555;
+        }
+        .article-content ul, .article-content ol {
+            margin: 25px 0;
+            padding-left: 30px;
+        }
+        .article-content li {
+            margin-bottom: 10px;
+        }
+        .code-block {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 20px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            margin: 25px 0;
+            overflow-x: auto;
+        }
+        .highlight-box {
+            background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%);
+            padding: 20px;
+            border-radius: 8px;
+            margin: 25px 0;
+            border-left: 4px solid #e17055;
+        }
+        .highlight-box h4 {
+            margin: 0 0 15px 0;
+            color: #2d3436;
+        }
+        .tags {
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 1px solid #ecf0f1;
+        }
+        .tag {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            margin: 5px;
+            text-decoration: none;
+        }
+        .tag:hover {
+            background: #5a6fd8;
+        }
+        .author-bio {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 8px;
+            margin-top: 40px;
+            border-left: 4px solid #667eea;
+        }
+        .author-bio h3 {
+            margin: 0 0 15px 0;
+            color: #2c3e50;
+        }
+        .author-bio p {
+            margin: 0;
+            color: #555;
+        }
+        .navigation {
+            background: #667eea;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .navigation a {
+            color: white;
+            text-decoration: none;
+            margin: 0 15px;
+        }
+        .navigation a:hover {
+            text-decoration: underline;
+        }
+        .test-section {
+            background: #e8f5e8;
+            border: 1px solid #4caf50;
+            padding: 20px;
+            margin: 30px 0;
+            border-radius: 8px;
+        }
+        .test-section h4 {
+            color: #2e7d32;
+            margin-top: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Tech Blog</h1>
+        <p>プログラミングとテクノロジーの記録</p>
+    </div>
+
+    <div class="navigation">
+        <a href="simple-text.html">シンプルテキスト</a>
+        <a href="news-article.html">ニュース記事</a>
+        <a href="blog-post.html">ブログ記事</a>
+        <a href="social-media.html">SNS風</a>
+        <a href="complex-layout.html">複雑レイアウト</a>
+    </div>
+
+    <div class="main-content">
+        <article class="article">
+            <div class="article-header">
+                <h1 class="article-title">React Hooksを使った状態管理のベストプラクティス</h1>
+                <div class="article-meta">
+                    <span>📅 2024年1月10日</span>
+                    <span>👤 山田 プログラマー</span>
+                    <span>⏱️ 読了時間: 8分</span>
+                </div>
+            </div>
+
+            <div class="article-content">
+                <p>React Hooksが登場してから、状態管理の方法が大きく変わりました。useState、useEffect、useContextなど、様々なHooksを組み合わせることで、より効率的で保守性の高いコードを書くことができます。</p>
+
+                <p>この記事では、実際のプロジェクトで学んだReact Hooksを使った状態管理のベストプラクティスについて、具体的なコード例とともに紹介します。</p>
+
+                <h2>useStateの適切な使い方</h2>
+                <p>useStateは最も基本的なHookですが、適切に使うことでパフォーマンスを向上させることができます。</p>
+
+                <div class="code-block">
+const [user, setUser] = useState({
+  name: '',
+  email: '',
+  preferences: {}
+});
+
+// 良い例：オブジェクトの一部を更新
+setUser(prevUser => ({
+  ...prevUser,
+  name: '新しい名前'
+}));
+                </div>
+
+                <p>オブジェクトの状態を更新する際は、必ずスプレッド演算子を使ってイミュータブルな更新を行いましょう。これにより、Reactが適切に再レンダリングを判断できます。</p>
+
+                <h2>useEffectの依存関係</h2>
+                <p>useEffectの依存関係配列は、バグの原因となることが多い部分です。適切に設定することで、不要な再実行を防ぐことができます。</p>
+
+                <div class="highlight-box">
+                    <h4>💡 重要なポイント</h4>
+                    <p>useEffectの依存関係配列は、コンポーネントのライフサイクルと密接に関連しています。空の配列[]は初回レンダリング時のみ実行され、依存関係を指定しない場合は毎回実行されます。</p>
+                </div>
+
+                <h3>よくある間違い</h3>
+                <ul>
+                    <li>依存関係配列を空にしすぎる</li>
+                    <li>依存関係を指定し忘れる</li>
+                    <li>オブジェクトや関数を依存関係に含める</li>
+                </ul>
+
+                <h2>カスタムHooksの作成</h2>
+                <p>ロジックを再利用可能にするために、カスタムHooksを作成することをお勧めします。</p>
+
+                <div class="code-block">
+// useLocalStorage.js
+import { useState, useEffect } from 'react';
+
+function useLocalStorage(key, initialValue) {
+  const [storedValue, setStoredValue] = useState(() => {
+    try {
+      const item = window.localStorage.getItem(key);
+      return item ? JSON.parse(item) : initialValue;
+    } catch (error) {
+      console.error(error);
+      return initialValue;
+    }
+  });
+
+  const setValue = value => {
+    try {
+      setStoredValue(value);
+      window.localStorage.setItem(key, JSON.stringify(value));
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  return [storedValue, setValue];
+}
+                </div>
+
+                <p>このカスタムHookを使うことで、ローカルストレージとの同期を簡単に行うことができます。</p>
+
+                <blockquote>
+                    「カスタムHooksは、ロジックの再利用性を高めるだけでなく、コンポーネントの可読性も向上させます。適切に設計されたカスタムHooksは、プロジェクト全体の保守性を大きく向上させます。」
+                </blockquote>
+
+                <h2>useContextを使った状態管理</h2>
+                <p>小規模なアプリケーションでは、useContextを使った状態管理が効果的です。</p>
+
+                <div class="test-section">
+                    <h4>テスト用セクション</h4>
+                    <p>このセクションは、ブログ記事内でのテキスト選択テスト用です。ブログ記事では、見出し、本文、コードブロック、引用文、ハイライトボックスなど、様々な要素が混在しています。</p>
+                    <p>それぞれの要素でテキスト選択をテストしてください。特に、コードブロック内のテキスト選択は、特殊なフォントや背景色での動作を確認できます。</p>
+                </div>
+
+                <h3>Contextの設計</h3>
+                <p>Contextを設計する際は、以下の点に注意してください：</p>
+                <ol>
+                    <li>関連する状態をグループ化する</li>
+                    <li>不要な再レンダリングを防ぐ</li>
+                    <li>デフォルト値を適切に設定する</li>
+                    <li>エラーハンドリングを考慮する</li>
+                </ol>
+
+                <h2>パフォーマンスの最適化</h2>
+                <p>React Hooksを使った状態管理では、パフォーマンスの最適化が重要です。</p>
+
+                <ul>
+                    <li>useMemoで計算結果をメモ化</li>
+                    <li>useCallbackで関数をメモ化</li>
+                    <li>React.memoでコンポーネントをメモ化</li>
+                    <li>適切な依存関係の設定</li>
+                </ul>
+
+                <p>これらの最適化により、不要な再レンダリングを防ぎ、アプリケーションのパフォーマンスを向上させることができます。</p>
+
+                <h2>まとめ</h2>
+                <p>React Hooksを使った状態管理は、適切に実装することで非常に強力なツールとなります。この記事で紹介したベストプラクティスを参考に、より良いコードを書いていきましょう。</p>
+
+                <p>次回は、より高度な状態管理パターンについて詳しく解説する予定です。お楽しみに！</p>
+            </div>
+
+            <div class="tags">
+                <a href="#" class="tag">React</a>
+                <a href="#" class="tag">JavaScript</a>
+                <a href="#" class="tag">フロントエンド</a>
+                <a href="#" class="tag">状態管理</a>
+                <a href="#" class="tag">ベストプラクティス</a>
+            </div>
+
+            <div class="author-bio">
+                <h3>著者について</h3>
+                <p>山田 プログラマーは、フロントエンド開発に5年以上従事しているエンジニアです。React、Vue.js、TypeScriptなどの技術を専門とし、実践的な開発経験をブログで共有しています。</p>
+            </div>
+        </article>
+    </div>
+
+    <script>
+        // テスト用のヘルパー関数
+        window.testHelper = {
+            // 記事タイトルを選択
+            selectTitle: function() {
+                const title = document.querySelector('.article-title');
+                if (title) {
+                    const range = document.createRange();
+                    range.selectNodeContents(title);
+                    
+                    const selection = window.getSelection();
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                    
+                    console.log('タイトル選択:', title.textContent);
+                }
+            },
+            
+            // コードブロックを選択
+            selectCodeBlock: function() {
+                const codeBlock = document.querySelector('.code-block');
+                if (codeBlock) {
+                    const range = document.createRange();
+                    range.selectNodeContents(codeBlock);
+                    
+                    const selection = window.getSelection();
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                    
+                    console.log('コードブロック選択:', codeBlock.textContent);
+                }
+            },
+            
+            // 引用文を選択
+            selectBlockquote: function() {
+                const blockquote = document.querySelector('blockquote');
+                if (blockquote) {
+                    const range = document.createRange();
+                    range.selectNodeContents(blockquote);
+                    
+                    const selection = window.getSelection();
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                    
+                    console.log('引用文選択:', blockquote.textContent);
+                }
+            },
+            
+            // ハイライトボックスを選択
+            selectHighlightBox: function() {
+                const highlightBox = document.querySelector('.highlight-box');
+                if (highlightBox) {
+                    const range = document.createRange();
+                    range.selectNodeContents(highlightBox);
+                    
+                    const selection = window.getSelection();
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                    
+                    console.log('ハイライトボックス選択:', highlightBox.textContent);
+                }
+            },
+            
+            // タグを選択
+            selectTags: function() {
+                const tags = document.querySelector('.tags');
+                if (tags) {
+                    const range = document.createRange();
+                    range.selectNodeContents(tags);
+                    
+                    const selection = window.getSelection();
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                    
+                    console.log('タグ選択:', tags.textContent);
+                }
+            }
+        };
+        
+        console.log('=== ブログ記事ページ読み込み完了 ===');
+        console.log('テストヘルパー関数が利用可能です:');
+        console.log('- testHelper.selectTitle(): タイトルを選択');
+        console.log('- testHelper.selectCodeBlock(): コードブロックを選択');
+        console.log('- testHelper.selectBlockquote(): 引用文を選択');
+        console.log('- testHelper.selectHighlightBox(): ハイライトボックスを選択');
+        console.log('- testHelper.selectTags(): タグを選択');
+    </script>
+</body>
+</html> 

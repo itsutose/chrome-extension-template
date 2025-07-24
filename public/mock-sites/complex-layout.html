@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>複雑レイアウト - メモ機能テスト</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            background-color: #f0f2f5;
+            color: #1c1e21;
+        }
+        .header {
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1877f2;
+        }
+        .nav {
+            display: flex;
+            gap: 20px;
+        }
+        .nav a {
+            color: #65676b;
+            text-decoration: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            transition: background-color 0.2s;
+        }
+        .nav a:hover {
+            background: #f0f2f5;
+        }
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 250px 1fr 300px;
+            gap: 20px;
+        }
+        .sidebar-left {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            height: fit-content;
+        }
+        .main-content {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .sidebar-right {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            height: fit-content;
+        }
+        .widget {
+            margin-bottom: 30px;
+        }
+        .widget h3 {
+            margin: 0 0 15px 0;
+            color: #1c1e21;
+            font-size: 18px;
+        }
+        .widget-content {
+            color: #65676b;
+            line-height: 1.6;
+        }
+        .dynamic-content {
+            background: #e7f3ff;
+            border: 1px solid #b3d9ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .dynamic-content h4 {
+            margin: 0 0 10px 0;
+            color: #1877f2;
+        }
+        .dynamic-text {
+            margin: 5px 0;
+            padding: 8px;
+            background: white;
+            border-radius: 4px;
+            border-left: 3px solid #1877f2;
+        }
+        .nested-element {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+        }
+        .nested-element .nested-element {
+            background: #e9ecef;
+            border-color: #adb5bd;
+        }
+        .nested-element .nested-element .nested-element {
+            background: #dee2e6;
+            border-color: #6c757d;
+        }
+        .long-text {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .special-chars {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .special-chars p {
+            margin: 5px 0;
+            font-family: 'Courier New', monospace;
+        }
+        .navigation {
+            background: #1877f2;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .navigation a {
+            color: white;
+            text-decoration: none;
+            margin: 0 15px;
+        }
+        .navigation a:hover {
+            text-decoration: underline;
+        }
+        .test-section {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .test-section h4 {
+            color: #155724;
+            margin-top: 0;
+        }
+        .floating-element {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #dc3545;
+            color: white;
+            padding: 15px;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            z-index: 1000;
+        }
+        .hidden-content {
+            display: none;
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .show-hidden {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+        .show-hidden:hover {
+            background: #218838;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="logo">ComplexApp</div>
+            <nav class="nav">
+                <a href="#">ホーム</a>
+                <a href="#">機能</a>
+                <a href="#">設定</a>
+                <a href="#">ヘルプ</a>
+            </nav>
+        </div>
+    </div>
+
+    <div class="navigation">
+        <a href="simple-text.html">シンプルテキスト</a>
+        <a href="news-article.html">ニュース記事</a>
+        <a href="blog-post.html">ブログ記事</a>
+        <a href="social-media.html">SNS風</a>
+        <a href="complex-layout.html">複雑レイアウト</a>
+    </div>
+
+    <div class="main-container">
+        <aside class="sidebar-left">
+            <div class="widget">
+                <h3>ナビゲーション</h3>
+                <div class="widget-content">
+                    <p>このサイドバーには様々な要素が含まれています。</p>
+                    <ul>
+                        <li>メニュー項目1</li>
+                        <li>メニュー項目2</li>
+                        <li>メニュー項目3</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="widget">
+                <h3>最近の活動</h3>
+                <div class="widget-content">
+                    <p>ユーザーの最近の活動履歴がここに表示されます。</p>
+                    <div class="dynamic-content">
+                        <h4>動的コンテンツ</h4>
+                        <div class="dynamic-text">このテキストは動的に変更される可能性があります。</div>
+                        <div class="dynamic-text">JavaScriptによって内容が更新されることがあります。</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <h1>複雑レイアウトテストページ</h1>
+            <p>このページは、複雑なレイアウトと動的コンテンツを含むテスト用ページです。様々な要素が混在し、文字列選択・復元アルゴリズムの精度をテストするのに適しています。</p>
+
+            <div class="test-section">
+                <h4>基本テストセクション</h4>
+                <p>このセクションでは基本的なテキスト選択をテストできます。通常の段落、見出し、リストなどが含まれています。</p>
+                <ul>
+                    <li>リスト項目1</li>
+                    <li>リスト項目2</li>
+                    <li>リスト項目3</li>
+                </ul>
+            </div>
+
+            <div class="nested-element">
+                <h3>ネストした要素</h3>
+                <p>この要素は複数のレベルでネストしています。</p>
+                <div class="nested-element">
+                    <h4>2番目のレベル</h4>
+                    <p>さらにネストした要素内のテキストです。</p>
+                    <div class="nested-element">
+                        <h5>3番目のレベル</h5>
+                        <p>最も深いネストレベルでのテキストです。</p>
+                        <span>span要素内のテキストも選択可能です。</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="long-text">
+                <h3>長いテキストテスト</h3>
+                <p>この段落には非常に長いテキストが含まれています。Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+                <p>さらに長いテキストが続きます。Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.</p>
+            </div>
+
+            <div class="special-chars">
+                <h3>特殊文字テスト</h3>
+                <p>特殊文字を含むテキスト: ①②③④⑤⑥⑦⑧⑨⑩</p>
+                <p>記号を含むテキスト: !@#$%^&*()_+-=[]{}|;':",./<>?</p>
+                <p>日本語と英語の混在: これはEnglish textです。</p>
+                <p>数字を含むテキスト: 1234567890</p>
+                <p>改行を含むテキスト:<br>この行は改行されています。</p>
+                <p>タブ文字を含むテキスト:	この前にはタブ文字があります。</p>
+            </div>
+
+            <div class="dynamic-content">
+                <h3>動的コンテンツ</h3>
+                <p>このセクションの内容は、JavaScriptによって動的に変更される可能性があります。</p>
+                <div id="dynamic-text-1" class="dynamic-text">動的テキスト1: この内容は変更される可能性があります。</div>
+                <div id="dynamic-text-2" class="dynamic-text">動的テキスト2: 時間とともに更新されることがあります。</div>
+                <button class="show-hidden" onclick="toggleHiddenContent()">隠しコンテンツを表示</button>
+                <div id="hidden-content" class="hidden-content">
+                    <h4>隠しコンテンツ</h4>
+                    <p>このコンテンツは最初は隠れていますが、ボタンをクリックすると表示されます。</p>
+                    <p>動的に表示されるコンテンツでのテキスト選択もテストできます。</p>
+                </div>
+            </div>
+
+            <div class="test-section">
+                <h4>重複テキストテスト</h4>
+                <p>このテキストは重複しています。</p>
+                <p>このテキストは重複しています。</p>
+                <p>このテキストは重複しています。</p>
+                <p>同じテキストが複数存在する場合、復元アルゴリズムが正しい位置を特定できるかをテストできます。</p>
+            </div>
+        </main>
+
+        <aside class="sidebar-right">
+            <div class="widget">
+                <h3>統計情報</h3>
+                <div class="widget-content">
+                    <p>ページの統計情報がここに表示されます。</p>
+                    <div class="dynamic-content">
+                        <h4>リアルタイム統計</h4>
+                        <div class="dynamic-text">訪問者数: <span id="visitor-count">1,234</span></div>
+                        <div class="dynamic-text">ページビュー: <span id="pageview-count">5,678</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="widget">
+                <h3>関連リンク</h3>
+                <div class="widget-content">
+                    <ul>
+                        <li><a href="#">関連ページ1</a></li>
+                        <li><a href="#">関連ページ2</a></li>
+                        <li><a href="#">関連ページ3</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="widget">
+                <h3>広告エリア</h3>
+                <div class="widget-content">
+                    <p>このエリアには広告が表示されることがあります。</p>
+                    <div style="background: #f0f0f0; padding: 20px; text-align: center; border-radius: 4px;">
+                        広告スペース
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <div class="floating-element" onclick="showAlert()">
+        ⚡
+    </div>
+
+    <script>
+        // 動的コンテンツの更新
+        let updateCounter = 0;
+        setInterval(() => {
+            updateCounter++;
+            const dynamicText1 = document.getElementById('dynamic-text-1');
+            const dynamicText2 = document.getElementById('dynamic-text-2');
+            
+            if (dynamicText1 && dynamicText2) {
+                dynamicText1.textContent = `動的テキスト1: 更新回数 ${updateCounter}`;
+                dynamicText2.textContent = `動的テキスト2: 最後の更新 ${new Date().toLocaleTimeString()}`;
+            }
+        }, 5000);
+
+        // 統計情報の更新
+        setInterval(() => {
+            const visitorCount = document.getElementById('visitor-count');
+            const pageviewCount = document.getElementById('pageview-count');
+            
+            if (visitorCount && pageviewCount) {
+                const newVisitors = Math.floor(Math.random() * 10) + 1230;
+                const newPageviews = Math.floor(Math.random() * 50) + 5650;
+                
+                visitorCount.textContent = newVisitors.toLocaleString();
+                pageviewCount.textContent = newPageviews.toLocaleString();
+            }
+        }, 3000);
+
+        // 隠しコンテンツの表示/非表示
+        function toggleHiddenContent() {
+            const hiddenContent = document.getElementById('hidden-content');
+            if (hiddenContent.style.display === 'none' || hiddenContent.style.display === '') {
+                hiddenContent.style.display = 'block';
+            } else {
+                hiddenContent.style.display = 'none';
+            }
+        }
+
+        // フローティング要素のクリック
+        function showAlert() {
+            alert('フローティング要素がクリックされました！');
+        }
+
+        // テスト用のヘルパー関数
+        window.testHelper = {
+            // 動的テキストを選択
+            selectDynamicText: function(index = 0) {
+                const dynamicTexts = document.querySelectorAll('.dynamic-text');
+                if (dynamicTexts[index]) {
+                    const range = document.createRange();
+                    range.selectNodeContents(dynamicTexts[index]);
+                    
+                    const selection = window.getSelection();
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                    
+                    console.log('動的テキスト選択:', dynamicTexts[index].textContent);
+                }
+            },
+            
+            // ネストした要素を選択
+            selectNestedElement: function(level = 0) {
+                const nestedElements = document.querySelectorAll('.nested-element');
+                if (nestedElements[level]) {
+                    const range = document.createRange();
+                    range.selectNodeContents(nestedElements[level]);
+                    
+                    const selection = window.getSelection();
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                    
+                    console.log('ネスト要素選択:', nestedElements[level].textContent);
+                }
+            },
+            
+            // 長いテキストを選択
+            selectLongText: function() {
+                const longText = document.querySelector('.long-text');
+                if (longText) {
+                    const range = document.createRange();
+                    range.selectNodeContents(longText);
+                    
+                    const selection = window.getSelection();
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                    
+                    console.log('長いテキスト選択:', longText.textContent);
+                }
+            },
+            
+            // 特殊文字を含むテキストを選択
+            selectSpecialChars: function() {
+                const specialChars = document.querySelector('.special-chars');
+                if (specialChars) {
+                    const range = document.createRange();
+                    range.selectNodeContents(specialChars);
+                    
+                    const selection = window.getSelection();
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                    
+                    console.log('特殊文字テキスト選択:', specialChars.textContent);
+                }
+            },
+            
+            // 隠しコンテンツを表示して選択
+            selectHiddenContent: function() {
+                toggleHiddenContent();
+                setTimeout(() => {
+                    const hiddenContent = document.getElementById('hidden-content');
+                    if (hiddenContent && hiddenContent.style.display !== 'none') {
+                        const range = document.createRange();
+                        range.selectNodeContents(hiddenContent);
+                        
+                        const selection = window.getSelection();
+                        selection.removeAllRanges();
+                        selection.addRange(range);
+                        
+                        console.log('隠しコンテンツ選択:', hiddenContent.textContent);
+                    }
+                }, 100);
+            }
+        };
+        
+        console.log('=== 複雑レイアウトページ読み込み完了 ===');
+        console.log('テストヘルパー関数が利用可能です:');
+        console.log('- testHelper.selectDynamicText(0): 動的テキストを選択');
+        console.log('- testHelper.selectNestedElement(0): ネスト要素を選択');
+        console.log('- testHelper.selectLongText(): 長いテキストを選択');
+        console.log('- testHelper.selectSpecialChars(): 特殊文字テキストを選択');
+        console.log('- testHelper.selectHiddenContent(): 隠しコンテンツを表示して選択');
+        console.log('動的コンテンツは5秒ごとに更新されます');
+    </script>
+</body>
+</html> 

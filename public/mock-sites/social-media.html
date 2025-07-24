@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SNS風 - メモ機能テスト</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            background-color: #f7f9fa;
+            color: #14171a;
+        }
+        .header {
+            background: white;
+            border-bottom: 1px solid #e1e8ed;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .header-content {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .logo {
+            font-size: 20px;
+            font-weight: bold;
+            color: #1da1f2;
+        }
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        .nav-button {
+            background: #1da1f2;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .nav-button:hover {
+            background: #1991db;
+        }
+        .main-content {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .post {
+            background: white;
+            border: 1px solid #e1e8ed;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        .post-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid #f7f9fa;
+            display: flex;
+            align-items: center;
+        }
+        .avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: #1da1f2;
+            margin-right: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        .user-info {
+            flex: 1;
+        }
+        .username {
+            font-weight: bold;
+            color: #14171a;
+            margin-bottom: 2px;
+        }
+        .handle {
+            color: #657786;
+            font-size: 14px;
+        }
+        .post-time {
+            color: #657786;
+            font-size: 14px;
+        }
+        .post-content {
+            padding: 0 20px 15px 20px;
+        }
+        .post-text {
+            font-size: 16px;
+            line-height: 1.5;
+            margin-bottom: 15px;
+        }
+        .post-actions {
+            display: flex;
+            justify-content: space-between;
+            padding: 0 20px 15px 20px;
+            border-top: 1px solid #f7f9fa;
+            padding-top: 15px;
+        }
+        .action-button {
+            background: none;
+            border: none;
+            color: #657786;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            padding: 8px 12px;
+            border-radius: 20px;
+            transition: background-color 0.2s;
+        }
+        .action-button:hover {
+            background: #f7f9fa;
+        }
+        .action-button.liked {
+            color: #e0245e;
+        }
+        .action-button.retweeted {
+            color: #17bf63;
+        }
+        .hashtag {
+            color: #1da1f2;
+            text-decoration: none;
+        }
+        .hashtag:hover {
+            text-decoration: underline;
+        }
+        .mention {
+            color: #1da1f2;
+            text-decoration: none;
+        }
+        .mention:hover {
+            text-decoration: underline;
+        }
+        .trending {
+            background: white;
+            border: 1px solid #e1e8ed;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .trending h3 {
+            margin: 0 0 15px 0;
+            color: #14171a;
+        }
+        .trending-item {
+            padding: 10px 0;
+            border-bottom: 1px solid #f7f9fa;
+        }
+        .trending-item:last-child {
+            border-bottom: none;
+        }
+        .trending-topic {
+            font-weight: bold;
+            color: #14171a;
+            margin-bottom: 2px;
+        }
+        .trending-count {
+            color: #657786;
+            font-size: 14px;
+        }
+        .navigation {
+            background: #1da1f2;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .navigation a {
+            color: white;
+            text-decoration: none;
+            margin: 0 15px;
+        }
+        .navigation a:hover {
+            text-decoration: underline;
+        }
+        .test-section {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .test-section h4 {
+            color: #856404;
+            margin-top: 0;
+        }
+        .emoji {
+            font-size: 1.2em;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="logo">SocialApp</div>
+            <div class="nav-buttons">
+                <button class="nav-button">投稿</button>
+                <button class="nav-button">プロフィール</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="navigation">
+        <a href="simple-text.html">シンプルテキスト</a>
+        <a href="news-article.html">ニュース記事</a>
+        <a href="blog-post.html">ブログ記事</a>
+        <a href="social-media.html">SNS風</a>
+        <a href="complex-layout.html">複雑レイアウト</a>
+    </div>
+
+    <div class="main-content">
+        <div class="trending">
+            <h3>トレンド</h3>
+            <div class="trending-item">
+                <div class="trending-topic">#プログラミング</div>
+                <div class="trending-count">1,234件の投稿</div>
+            </div>
+            <div class="trending-item">
+                <div class="trending-topic">#React</div>
+                <div class="trending-count">567件の投稿</div>
+            </div>
+            <div class="trending-item">
+                <div class="trending-topic">#TypeScript</div>
+                <div class="trending-count">890件の投稿</div>
+            </div>
+        </div>
+
+        <div class="post">
+            <div class="post-header">
+                <div class="avatar">T</div>
+                <div class="user-info">
+                    <div class="username">田中 太郎</div>
+                    <div class="handle">@tanaka_dev</div>
+                </div>
+                <div class="post-time">2時間前</div>
+            </div>
+            <div class="post-content">
+                <div class="post-text">
+                    今日はReact Hooksについて勉強しました！useStateとuseEffectの使い方がようやく理解できてきました。特に、依存関係配列の重要性が分かって良かったです。<span class="hashtag">#React</span> <span class="hashtag">#プログラミング</span>
+                </div>
+            </div>
+            <div class="post-actions">
+                <button class="action-button">
+                    <span class="emoji">💬</span>
+                    <span>12</span>
+                </button>
+                <button class="action-button retweeted">
+                    <span class="emoji">🔄</span>
+                    <span>34</span>
+                </button>
+                <button class="action-button liked">
+                    <span class="emoji">❤️</span>
+                    <span>89</span>
+                </button>
+                <button class="action-button">
+                    <span class="emoji">📤</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="post">
+            <div class="post-header">
+                <div class="avatar">S</div>
+                <div class="user-info">
+                    <div class="username">佐藤 花子</div>
+                    <div class="handle">@sato_web</div>
+                </div>
+                <div class="post-time">5時間前</div>
+            </div>
+            <div class="post-content">
+                <div class="post-text">
+                    TypeScriptの型定義について勉強中です。interfaceとtypeの違いが分かってきました。型安全性が高まって、バグが減るのが実感できます！<span class="hashtag">#TypeScript</span> <span class="hashtag">#フロントエンド</span>
+                </div>
+            </div>
+            <div class="post-actions">
+                <button class="action-button">
+                    <span class="emoji">💬</span>
+                    <span>8</span>
+                </button>
+                <button class="action-button">
+                    <span class="emoji">🔄</span>
+                    <span>15</span>
+                </button>
+                <button class="action-button">
+                    <span class="emoji">❤️</span>
+                    <span>45</span>
+                </button>
+                <button class="action-button">
+                    <span class="emoji">📤</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="post">
+            <div class="post-header">
+                <div class="avatar">Y</div>
+                <div class="user-info">
+                    <div class="username">山田 次郎</div>
+                    <div class="handle">@yamada_tech</div>
+                </div>
+                <div class="post-time">1日前</div>
+            </div>
+            <div class="post-content">
+                <div class="post-text">
+                    新しいプロジェクトでVue.jsを使い始めました。Reactとは違うアプローチで面白いですね。Composition APIが特に気に入っています。<span class="mention">@tanaka_dev</span> さんも試してみてください！<span class="hashtag">#Vue</span> <span class="hashtag">#JavaScript</span>
+                </div>
+            </div>
+            <div class="post-actions">
+                <button class="action-button">
+                    <span class="emoji">💬</span>
+                    <span>23</span>
+                </button>
+                <button class="action-button">
+                    <span class="emoji">🔄</span>
+                    <span>67</span>
+                </button>
+                <button class="action-button">
+                    <span class="emoji">❤️</span>
+                    <span>156</span>
+                </button>
+                <button class="action-button">
+                    <span class="emoji">📤</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="post">
+            <div class="post-header">
+                <div class="avatar">I</div>
+                <div class="user-info">
+                    <div class="username">伊藤 美咲</div>
+                    <div class="handle">@ito_design</div>
+                </div>
+                <div class="post-time">2日前</div>
+            </div>
+            <div class="post-content">
+                <div class="post-text">
+                    CSS GridとFlexboxの使い分けについて記事を書きました。レイアウトの基本を理解するのに役立つと思います。特に、Gridは2次元レイアウトに、Flexboxは1次元レイアウトに適しているのがポイントです。<span class="hashtag">#CSS</span> <span class="hashtag">#Webデザイン</span> <span class="hashtag">#フロントエンド</span>
+                </div>
+            </div>
+            <div class="post-actions">
+                <button class="action-button">
+                    <span class="emoji">💬</span>
+                    <span>45</span>
+                </button>
+                <button class="action-button">
+                    <span class="emoji">🔄</span>
+                    <span>123</span>
+                </button>
+                <button class="action-button">
+                    <span class="emoji">❤️</span>
+                    <span>234</span>
+                </button>
+                <button class="action-button">
+                    <span class="emoji">📤</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h4>テスト用セクション</h4>
+            <p>このセクションは、SNS風ページ内でのテキスト選択テスト用です。SNSでは、短い投稿文、ハッシュタグ、メンション、ユーザー名など、様々な要素が混在しています。</p>
+            <p>それぞれの要素でテキスト選択をテストしてください。特に、ハッシュタグやメンションの選択は、特殊なスタイリングでの動作を確認できます。</p>
+        </div>
+    </div>
+
+    <script>
+        // テスト用のヘルパー関数
+        window.testHelper = {
+            // 投稿文を選択
+            selectPostText: function(index = 0) {
+                const posts = document.querySelectorAll('.post-text');
+                if (posts[index]) {
+                    const range = document.createRange();
+                    range.selectNodeContents(posts[index]);
+                    
+                    const selection = window.getSelection();
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                    
+                    console.log('投稿文選択:', posts[index].textContent);
+                }
+            },
+            
+            // ハッシュタグを選択
+            selectHashtag: function() {
+                const hashtags = document.querySelectorAll('.hashtag');
+                if (hashtags.length > 0) {
+                    const randomHashtag = hashtags[Math.floor(Math.random() * hashtags.length)];
+                    const range = document.createRange();
+                    range.selectNodeContents(randomHashtag);
+                    
+                    const selection = window.getSelection();
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                    
+                    console.log('ハッシュタグ選択:', randomHashtag.textContent);
+                }
+            },
+            
+            // メンションを選択
+            selectMention: function() {
+                const mentions = document.querySelectorAll('.mention');
+                if (mentions.length > 0) {
+                    const range = document.createRange();
+                    range.selectNodeContents(mentions[0]);
+                    
+                    const selection = window.getSelection();
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                    
+                    console.log('メンション選択:', mentions[0].textContent);
+                }
+            },
+            
+            // ユーザー名を選択
+            selectUsername: function(index = 0) {
+                const usernames = document.querySelectorAll('.username');
+                if (usernames[index]) {
+                    const range = document.createRange();
+                    range.selectNodeContents(usernames[index]);
+                    
+                    const selection = window.getSelection();
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                    
+                    console.log('ユーザー名選択:', usernames[index].textContent);
+                }
+            },
+            
+            // トレンドトピックを選択
+            selectTrendingTopic: function(index = 0) {
+                const topics = document.querySelectorAll('.trending-topic');
+                if (topics[index]) {
+                    const range = document.createRange();
+                    range.selectNodeContents(topics[index]);
+                    
+                    const selection = window.getSelection();
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                    
+                    console.log('トレンドトピック選択:', topics[index].textContent);
+                }
+            }
+        };
+        
+        console.log('=== SNS風ページ読み込み完了 ===');
+        console.log('テストヘルパー関数が利用可能です:');
+        console.log('- testHelper.selectPostText(0): 1番目の投稿文を選択');
+        console.log('- testHelper.selectHashtag(): ランダムなハッシュタグを選択');
+        console.log('- testHelper.selectMention(): メンションを選択');
+        console.log('- testHelper.selectUsername(0): 1番目のユーザー名を選択');
+        console.log('- testHelper.selectTrendingTopic(0): 1番目のトレンドトピックを選択');
+    </script>
+</body>
+</html> 
