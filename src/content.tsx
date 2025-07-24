@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { createRoot } from 'react-dom/client';
+import { TextSelectionWatcher } from './utils/textSelection';
 
-debugger;
+// debugger;
 
 // カウントコンポーネント
 function CountComponent() {
@@ -66,6 +67,42 @@ function ContentApp() {
   );
 }
 
+// テキスト選択監視の初期化
+let textSelectionWatcher: TextSelectionWatcher | null = null;
+
+function initializeTextSelectionWatcher() {
+  textSelectionWatcher = new TextSelectionWatcher((selection) => {
+    if (selection) {
+      console.log('Text selection changed:', selection.text);
+    } else {
+      console.log('Text selection cleared');
+    }
+  });
+}
+
+// メモ作成ハンドラー
+function handleCreateMemo(selectionText: string) {
+  console.log('Creating memo for text:', selectionText);
+
+  if (textSelectionWatcher) {
+    const currentSelection = textSelectionWatcher.getCurrentSelection();
+    if (currentSelection) {
+      console.log('Memo creation initiated with selection info:', {
+        text: currentSelection.text,
+        position: {
+          x: currentSelection.boundingRect.x,
+          y: currentSelection.boundingRect.y
+        }
+      });
+
+      // TODO: メモ作成UIの表示（002番のissueで実装予定）
+      // 現在はログ出力のみ
+    } else {
+      console.warn('No current selection available for memo creation');
+    }
+  }
+}
+
 // アプリの初期化
 function initializeApp() {
   const existing = document.getElementById('content-app');
@@ -87,12 +124,15 @@ function updateCount(newCount: number) {
 
 // 初期化
 initializeApp();
+initializeTextSelectionWatcher();
 
 // メッセージ受信
-chrome.runtime.onMessage.addListener((message: { action: string; count: number }) => {
-  if (message.action === 'updateCount') {
+chrome.runtime.onMessage.addListener((message: { action: string; count?: number; selectionText?: string }) => {
+  if (message.action === 'updateCount' && message.count !== undefined) {
     updateCount(message.count);
+  } else if (message.action === 'createMemo' && message.selectionText) {
+    handleCreateMemo(message.selectionText);
   }
 });
 
-console.log('Content script ready');
+console.log('Content script ready with text selection monitoring');
