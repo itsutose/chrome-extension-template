@@ -51,14 +51,14 @@ export class RestoreSimulator {
   private static performRestoreSimulation(originalInfo: TextSelectionInfo, errors: string[]): TextSelectionInfo | null {
     try {
       // 1. テキストノードの検索
-      const textNodes = this.findAllTextNodes();
+      const textNodes = this.getAllTextNodes();
       if (textNodes.length === 0) {
         errors.push('No text nodes found on page');
         return null;
       }
 
       // 2. 完全一致するテキストの検索
-      const exactMatch = this.findExactTextMatch(originalInfo.text, textNodes);
+      const exactMatch = this.findExactTextMatch(originalInfo, textNodes);
 
       if (!exactMatch) {
         errors.push('No exact text match found');
@@ -76,6 +76,7 @@ export class RestoreSimulator {
         timestamp: Date.now()
       };
 
+      console.log('restoredInfo size:', new TextEncoder().encode(JSON.stringify(restoredInfo)).length, 'bytes');
       return restoredInfo;
 
     } catch (error) {
@@ -84,7 +85,7 @@ export class RestoreSimulator {
     }
   }
 
-  private static findAllTextNodes(): Text[] {
+  private static getAllTextNodes(): Text[] {
     const textNodes: Text[] = [];
     const walker = document.createTreeWalker(
       document.body,
@@ -104,24 +105,196 @@ export class RestoreSimulator {
     return textNodes;
   }
 
-  private static findExactTextMatch(targetText: string, textNodes: Text[]): {
+  private static findExactTextMatch(originalInfo: TextSelectionInfo, textNodes: Text[]): {
     node: Text;
     startOffset: number;
     endOffset: number;
   } | null {
+    const candidates: Array<{
+      node: Text;
+      startOffset: number;
+      endOffset: number;
+      similarity: number;
+    }> = [];
+
     for (const node of textNodes) {
       const textContent = node.textContent || '';
-      const index = textContent.indexOf(targetText);
+      const index = textContent.indexOf(originalInfo.text);
 
-      if (index !== -1) {
-        return {
-          node,
-          startOffset: index,
-          endOffset: index + targetText.length
-        };
+      if (index === -1) {
+        continue;
+      }
+
+      // 周辺ノード情報の類似度を計算
+      const similarity = this.calculateNodeSimilarity(originalInfo, node);
+      
+      candidates.push({
+        node,
+        startOffset: index,
+        endOffset: index + originalInfo.text.length,
+        similarity
+      });
+    }
+
+    if (candidates.length === 0) {
+      return null;
+    }
+
+    // 類似度が最も高い候補を選択
+    const bestMatch = candidates.reduce((best, current) => 
+      current.similarity > best.similarity ? current : best
+    );
+
+    console.log('復元候補の類似度:', candidates.map(c => ({
+      text: c.node.textContent?.substring(c.startOffset, c.endOffset),
+      similarity: c.similarity
+    })));
+
+    return {
+      node: bestMatch.node,
+      startOffset: bestMatch.startOffset,
+      endOffset: bestMatch.endOffset
+    };
+  }
+
+  /**
+   * 周辺ノード情報の類似度を計算
+   */
+  private static calculateNodeSimilarity(originalInfo: TextSelectionInfo, targetNode: Text): number {
+    let similarity = 0;
+    const maxSimilarity = 1.0;
+
+    try {
+      // 1. 親要素の前の兄弟要素の比較 (重み: 0.3)
+      const originalPrevSibling = originalInfo.parentPreviousSiblingElement;
+      const targetPrevSibling = (targetNode.parentElement as Element)?.previousElementSibling as Element;
+      
+      if (originalPrevSibling && targetPrevSibling) {
+        const prevSimilarity = this.compareElements(originalPrevSibling, targetPrevSibling);
+        similarity += prevSimilarity * 0.3;
+      }
+
+      // 2. 親要素の次の兄弟要素の比較 (重み: 0.3)
+      const originalNextSibling = originalInfo.parentNextSiblingElement;
+      const targetNextSibling = (targetNode.parentElement as Element)?.nextElementSibling as Element;
+      
+      if (originalNextSibling && targetNextSibling) {
+        const nextSimilarity = this.compareElements(originalNextSibling, targetNextSibling);
+        similarity += nextSimilarity * 0.3;
+      }
+      
+      // 3. 親要素自体の比較 (重み: 0.2)
+      const originalParent = originalInfo.startContainer.parentElement as Element;
+      const targetParent = targetNode.parentElement as Element;
+      
+      if (originalParent && targetParent) {
+        const parentSimilarity = this.compareElements(originalParent, targetParent);
+        similarity += parentSimilarity * 0.2;
+      }
+
+      // 4. 位置情報の比較 (重み: 0.2)
+      const positionSimilarity = this.calculatePositionSimilarity(originalInfo, targetNode);
+      similarity += positionSimilarity * 0.2;
+
+    } catch (error) {
+      console.error('類似度計算エラー:', error);
+      similarity = 0;
+    }
+
+    return Math.min(similarity, maxSimilarity);
+  }
+
+  /**
+   * 要素の類似度を比較
+   */
+  private static compareElements(element1: Element, element2: Element): number {
+    let similarity = 0;
+    const maxSimilarity = 1.0;
+
+    try {
+      // 1. タグ名の比較 (重み: 0.3)
+      if (element1.tagName === element2.tagName) {
+        similarity += 0.3;
+      }
+
+      // 2. クラス名の比較 (重み: 0.3)
+      const class1 = element1.className || '';
+      const class2 = element2.className || '';
+      if (class1 && class2) {
+        const classSimilarity = this.compareStrings(class1, class2);
+        similarity += classSimilarity * 0.3;
+      }
+
+      // 3. IDの比較 (重み: 0.2)
+      const id1 = element1.id || '';
+      const id2 = element2.id || '';
+      if (id1 && id2 && id1 === id2) {
+        similarity += 0.2;
+      }
+
+      // 4. テキスト内容の比較 (重み: 0.2)
+      const text1 = element1.textContent?.trim() || '';
+      const text2 = element2.textContent?.trim() || '';
+      if (text1 && text2) {
+        const textSimilarity = this.compareStrings(text1, text2);
+        similarity += textSimilarity * 0.2;
+      }
+
+    } catch (error) {
+      console.error('要素比較エラー:', error);
+      similarity = 0;
+    }
+
+    return Math.min(similarity, maxSimilarity);
+  }
+
+  /**
+   * 文字列の類似度を比較（簡易版）
+   */
+  private static compareStrings(str1: string, str2: string): number {
+    if (str1 === str2) return 1.0;
+    if (str1.length === 0 || str2.length === 0) return 0.0;
+
+    const longer = str1.length > str2.length ? str1 : str2;
+    const shorter = str1.length > str2.length ? str2 : str1;
+
+    // 共通部分文字列の長さを計算
+    let commonLength = 0;
+    for (let i = 0; i < shorter.length; i++) {
+      if (shorter[i] === longer[i]) {
+        commonLength++;
       }
     }
-    return null;
+
+    return commonLength / longer.length;
+  }
+
+  /**
+   * 位置情報の類似度を計算
+   */
+  private static calculatePositionSimilarity(originalInfo: TextSelectionInfo, targetNode: Text): number {
+    try {
+      // 対象ノードの位置を計算
+      const range = document.createRange();
+      range.selectNodeContents(targetNode);
+      const targetRect = range.getBoundingClientRect();
+
+      // 元の位置との距離を計算
+      const originalRect = originalInfo.boundingRect;
+      const maxDistance = Math.max(window.innerWidth, window.innerHeight);
+      
+      const centerDistance = Math.sqrt(
+        Math.pow(originalRect.left + originalRect.width / 2 - (targetRect.left + targetRect.width / 2), 2) +
+        Math.pow(originalRect.top + originalRect.height / 2 - (targetRect.top + targetRect.height / 2), 2)
+      );
+
+      // 距離を類似度に変換（距離が近いほど類似度が高い）
+      return Math.max(0, 1 - centerDistance / maxDistance);
+
+    } catch (error) {
+      console.error('位置類似度計算エラー:', error);
+      return 0;
+    }
   }
 
   private static calculateRestoredBoundingRect(match: {

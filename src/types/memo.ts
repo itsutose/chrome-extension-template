@@ -5,6 +5,10 @@ export interface TextSelectionInfo {
   endOffset: number;
   startContainer: Node;
   endContainer: Node;
+  parentPreviousSiblingNode: Node; // 先頭の親要素の前の兄弟要素
+  parentNextSiblingNode: Node; // 最後の親要素の次の兄弟要素
+  parentPreviousSiblingElement: Element; // 先頭の親要素の前の兄弟要素
+  parentNextSiblingElement: Element; // 最後の親要素の次の兄弟要素
   range: Range;
   boundingRect: DOMRect;
   pageUrl: string;

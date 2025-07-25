@@ -32,7 +32,7 @@ export class TextSelectionWatcher {
     }
 
     try {
-      const range = selection.getRangeAt(0);
+      const range: Range = selection.getRangeAt(0);
       const text = selection.toString().trim();
 
       if (text.length === 0) {
@@ -48,6 +48,10 @@ export class TextSelectionWatcher {
         endOffset: range.endOffset,
         startContainer: range.startContainer,
         endContainer: range.endContainer,
+        parentPreviousSiblingNode: (range.startContainer.parentElement as Element)?.previousElementSibling as Node,
+        parentNextSiblingNode: (range.startContainer.parentElement as Element)?.nextElementSibling as Node,
+        parentPreviousSiblingElement: (range.startContainer.parentElement as Element)?.previousElementSibling as Element,
+        parentNextSiblingElement: (range.startContainer.parentElement as Element)?.nextElementSibling as Element,
         range: range.cloneRange(),
         boundingRect,
         pageUrl: window.location.href,
