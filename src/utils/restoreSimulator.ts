@@ -2,6 +2,7 @@ import type { RestoreSimulationResult, TextSelectionInfo } from '../types/memo';
 
 export class RestoreSimulator {
   private static simulationHistory: RestoreSimulationResult[] = [];
+  private static currentHighlight: HTMLElement | null = null;
 
   static simulateRestore(originalInfo: TextSelectionInfo): RestoreSimulationResult {
     const startTime = Date.now();
@@ -187,5 +188,94 @@ export class RestoreSimulator {
 
   static clearHistory(): void {
     this.simulationHistory = [];
+  }
+
+  /**
+   * 復元された位置を可視化（背景色付きspanで表示）
+   */
+  static visualizeRestoredPosition(restoredInfo: TextSelectionInfo | null): void {
+    // 既存のハイライトをクリア
+    this.clearVisualization();
+
+    if (!restoredInfo) {
+      console.log('復元情報がないため可視化をスキップ');
+      return;
+    }
+
+    try {
+      // 復元された位置にspanを挿入
+      const range = document.createRange();
+      range.setStart(restoredInfo.startContainer, restoredInfo.startOffset);
+      range.setEnd(restoredInfo.endContainer, restoredInfo.endOffset);
+
+      const span = document.createElement('span');
+      span.style.backgroundColor = '#ffeb3b'; // 黄色の背景
+      span.style.color = '#000000'; // 黒文字
+      span.style.padding = '2px 4px';
+      span.style.borderRadius = '3px';
+      span.style.fontWeight = 'bold';
+      span.style.position = 'relative';
+      span.style.zIndex = '1000';
+      span.title = '復元された位置';
+      span.id = 'restore-simulator-highlight';
+
+      // 範囲の内容をspanで囲む
+      range.surroundContents(span);
+      
+      this.currentHighlight = span;
+      
+      console.log('復元位置を可視化しました:', {
+        text: restoredInfo.text,
+        position: {
+          x: restoredInfo.boundingRect.x,
+          y: restoredInfo.boundingRect.y,
+          width: restoredInfo.boundingRect.width,
+          height: restoredInfo.boundingRect.height
+        }
+      });
+
+    } catch (error) {
+      console.error('復元位置の可視化に失敗:', error);
+    }
+  }
+
+  /**
+   * 可視化をクリア
+   */
+  static clearVisualization(): void {
+    if (this.currentHighlight) {
+      try {
+        // spanを削除して元のテキストに戻す
+        const parent = this.currentHighlight.parentNode;
+        if (parent) {
+          parent.replaceChild(
+            document.createTextNode(this.currentHighlight.textContent || ''),
+            this.currentHighlight
+          );
+        }
+        this.currentHighlight = null;
+        console.log('可視化をクリアしました');
+      } catch (error) {
+        console.error('可視化のクリアに失敗:', error);
+      }
+    }
+  }
+
+  /**
+   * 復元シミュレーションを実行し、結果を可視化
+   */
+  static simulateRestoreWithVisualization(originalInfo: TextSelectionInfo): RestoreSimulationResult {
+    // 既存の可視化をクリア
+    this.clearVisualization();
+
+    // シミュレーション実行
+    const result = this.simulateRestore(originalInfo);
+
+    // 成功した場合のみ可視化
+    if (result.success && result.restoredInfo) {
+      this.visualizeRestoredPosition(result.restoredInfo);
+    }
+
+    return result;
   }
 }

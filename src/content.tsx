@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { PositionValidator } from './utils/positionValidator';
+// import { PositionValidator } from './utils/positionValidator';
 import { RestoreSimulator } from './utils/restoreSimulator';
 import { TextSelectionWatcher } from './utils/textSelection';
 
@@ -61,19 +61,21 @@ function ColorButtonComponent() {
 // テストコンポーネント
 function TestComponent() {
   const [isTestMode, setIsTestMode] = useState(false);
-  
+
   const toggleTestMode = () => {
     setIsTestMode(!isTestMode);
     if (!isTestMode) {
       console.log('Test mode enabled');
     } else {
       console.log('Test mode disabled');
+      // テストモードを無効化時に可視化をクリア
+      RestoreSimulator.clearVisualization();
     }
   };
 
   // テストモード状態をグローバルに公開
   (window as any).isTestMode = isTestMode;
-  
+
   return (
     <div
       style={{
@@ -138,16 +140,16 @@ function handleCreateMemo(selectionText: string) {
 
         try {
           // PositionValidatorで検証
-          const validationResult = PositionValidator.validateSelectionInfo(currentSelection);
-          console.log('PositionValidator結果:', validationResult);
+          // const validationResult = PositionValidator.validateSelectionInfo(currentSelection);
+          // console.log('PositionValidator結果:', validationResult);
 
           // RestoreSimulatorでシミュレーション
-          const simulationResult = RestoreSimulator.simulateRestore(currentSelection);
+          const simulationResult = RestoreSimulator.simulateRestoreWithVisualization(currentSelection);
           console.log('RestoreSimulator結果:', simulationResult);
 
           // 結果の要約
           console.log('=== 検証結果要約 ===');
-          console.log(`精度: ${validationResult.accuracy.toFixed(3)}`);
+          // console.log(`精度: ${validationResult.accuracy.toFixed(3)}`);
           console.log(`処理時間: ${simulationResult.processingTime}ms`);
           console.log(`成功: ${simulationResult.success ? 'YES' : 'NO'}`);
           console.log('========================');

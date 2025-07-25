@@ -1,5 +1,13 @@
 import type { PositionValidationResult, TextSelectionInfo } from '../types/memo';
 
+/**
+ * テキスト選択位置の検証
+ * 
+ * 選択した際に選択情報の妥当性チェックし復元可能か判定する
+ * 実際の復元処理は実行しない
+ * 
+ * @param selectionInfo - 検証対象のテキスト選択位置情報
+ */
 export class PositionValidator {
   static validateSelectionInfo(selectionInfo: TextSelectionInfo): PositionValidationResult {
     const startTime = Date.now();
@@ -7,6 +15,7 @@ export class PositionValidator {
     try {
       // 1. 入力データの検証
       if (!selectionInfo || !selectionInfo.text || selectionInfo.text.trim() === '') {
+        // selectionInfoがnullまたはテキストが空の場合は無効
         return {
           isValid: false,
           accuracy: 0,
@@ -20,6 +29,7 @@ export class PositionValidator {
       // 2. 現在のページからテキストノードを取得
       const textNodes = this.findAllTextNodes();
       if (textNodes.length === 0) {
+        // ページ内にテキストノードが存在しない場合は無効
         return {
           isValid: false,
           accuracy: 0,
@@ -34,6 +44,7 @@ export class PositionValidator {
       const exactMatch = this.findExactMatch(selectionInfo, textNodes);
 
       if (!exactMatch) {
+        // 完全一致するノードが見つからない場合は無効
         return {
           isValid: false,
           accuracy: 0,
@@ -104,10 +115,12 @@ export class PositionValidator {
     startOffset: number;
     endOffset: number;
   } | null {
+    // ページ内のテキストノードを検索
     for (const node of textNodes) {
       const textContent = node.textContent || '';
       const index = textContent.indexOf(originalInfo.text);
 
+      // テキストが一致する場合は復元位置を返す
       if (index !== -1) {
         return {
           node,
@@ -132,25 +145,6 @@ export class PositionValidator {
     // テキストの完全一致（1.0または0.0）
     const textAccuracy = original.text === restored.text ? 1.0 : 0.0;
 
-    // 位置の一致度（座標の差を正規化）
-    const positionAccuracy = this.calculatePositionAccuracy(original.boundingRect, restored.boundingRect);
-
-    // 重み付き平均（テキスト: 70%, 位置: 30%）
-    return textAccuracy * 0.7 + positionAccuracy * 0.3;
-  }
-
-  private static calculatePositionAccuracy(originalRect: DOMRect, restoredRect: DOMRect): number {
-    const maxDistance = Math.max(window.innerWidth, window.innerHeight);
-    
-    const centerDistance = Math.sqrt(
-      Math.pow(originalRect.left + originalRect.width / 2 - (restoredRect.left + restoredRect.width / 2), 2) +
-      Math.pow(originalRect.top + originalRect.height / 2 - (restoredRect.top + restoredRect.height / 2), 2)
-    );
-
-    return Math.max(0, 1 - centerDistance / maxDistance);
-  }
-
-  static validateMultiplePositions(positions: TextSelectionInfo[]): PositionValidationResult[] {
-    return positions.map(position => this.validateSelectionInfo(position));
+    return textAccuracy;
   }
 }
