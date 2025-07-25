@@ -2,7 +2,8 @@ import type { RestoreSimulationResult, TextSelectionInfo } from '../types/memo';
 
 export class RestoreSimulator {
   private static simulationHistory: RestoreSimulationResult[] = [];
-  private static currentHighlight: HTMLElement | null = null;
+  private static currentHighlights: Map<string, HTMLElement> = new Map();
+  private static highlightCounter = 0;
 
   static simulateRestore(originalInfo: TextSelectionInfo): RestoreSimulationResult {
     const startTime = Date.now();
@@ -367,9 +368,6 @@ export class RestoreSimulator {
    * 復元された位置を可視化（背景色付きspanで表示）
    */
   static visualizeRestoredPosition(restoredInfo: TextSelectionInfo | null): void {
-    // 既存のハイライトをクリア
-    this.clearVisualization();
-
     if (!restoredInfo) {
       console.log('復元情報がないため可視化をスキップ');
       return;
@@ -381,30 +379,48 @@ export class RestoreSimulator {
       range.setStart(restoredInfo.startContainer, restoredInfo.startOffset);
       range.setEnd(restoredInfo.endContainer, restoredInfo.endOffset);
 
+      const highlightId = `restore-highlight-${++this.highlightCounter}`;
       const span = document.createElement('span');
-      span.style.backgroundColor = '#ffeb3b'; // 黄色の背景
+      
+      // 色をランダムに選択（見分けやすくするため）
+      const colors = [
+        '#ffeb3b', // 黄色
+        '#4caf50', // 緑
+        '#2196f3', // 青
+        '#ff9800', // オレンジ
+        '#9c27b0', // 紫
+        '#f44336', // 赤
+        '#00bcd4', // シアン
+        '#ff5722'  // ディープオレンジ
+      ];
+      const colorIndex = (this.highlightCounter - 1) % colors.length;
+      
+      span.style.backgroundColor = colors[colorIndex];
       span.style.color = '#000000'; // 黒文字
       span.style.padding = '2px 4px';
       span.style.borderRadius = '3px';
       span.style.fontWeight = 'bold';
       span.style.position = 'relative';
       span.style.zIndex = '1000';
-      span.title = '復元された位置';
-      span.id = 'restore-simulator-highlight';
+      span.style.border = '1px solid #333';
+      span.title = `復元位置 #${this.highlightCounter}`;
+      span.id = highlightId;
 
       // 範囲の内容をspanで囲む
       range.surroundContents(span);
       
-      this.currentHighlight = span;
+      // 履歴に追加
+      this.currentHighlights.set(highlightId, span);
       
-      console.log('復元位置を可視化しました:', {
+      console.log(`復元位置 #${this.highlightCounter} を可視化しました:`, {
         text: restoredInfo.text,
         position: {
           x: restoredInfo.boundingRect.x,
           y: restoredInfo.boundingRect.y,
           width: restoredInfo.boundingRect.width,
           height: restoredInfo.boundingRect.height
-        }
+        },
+        color: colors[colorIndex]
       });
 
     } catch (error) {
@@ -413,38 +429,63 @@ export class RestoreSimulator {
   }
 
   /**
-   * 可視化をクリア
+   * 特定の可視化をクリア
    */
-  static clearVisualization(): void {
-    if (this.currentHighlight) {
+  static clearSpecificVisualization(highlightId: string): void {
+    const highlight = this.currentHighlights.get(highlightId);
+    if (highlight) {
       try {
         // spanを削除して元のテキストに戻す
-        const parent = this.currentHighlight.parentNode;
+        const parent = highlight.parentNode;
         if (parent) {
           parent.replaceChild(
-            document.createTextNode(this.currentHighlight.textContent || ''),
-            this.currentHighlight
+            document.createTextNode(highlight.textContent || ''),
+            highlight
           );
         }
-        this.currentHighlight = null;
-        console.log('可視化をクリアしました');
+        this.currentHighlights.delete(highlightId);
+        console.log(`可視化 #${highlightId} をクリアしました`);
       } catch (error) {
-        console.error('可視化のクリアに失敗:', error);
+        console.error(`可視化 #${highlightId} のクリアに失敗:`, error);
       }
     }
   }
 
   /**
-   * 復元シミュレーションを実行し、結果を可視化
+   * 全ての可視化をクリア
+   */
+  static clearAllVisualizations(): void {
+    const highlightIds = Array.from(this.currentHighlights.keys());
+    highlightIds.forEach(id => this.clearSpecificVisualization(id));
+    this.highlightCounter = 0;
+    console.log('全ての可視化をクリアしました');
+  }
+
+  /**
+   * 現在の可視化一覧を取得
+   */
+  static getCurrentVisualizations(): Array<{
+    id: string;
+    text: string;
+    color: string;
+    timestamp: number;
+  }> {
+    return Array.from(this.currentHighlights.entries()).map(([id, element]) => ({
+      id,
+      text: element.textContent || '',
+      color: element.style.backgroundColor,
+      timestamp: Date.now()
+    }));
+  }
+
+  /**
+   * 復元シミュレーションを実行し、結果を可視化（既存の可視化は保持）
    */
   static simulateRestoreWithVisualization(originalInfo: TextSelectionInfo): RestoreSimulationResult {
-    // 既存の可視化をクリア
-    this.clearVisualization();
-
     // シミュレーション実行
     const result = this.simulateRestore(originalInfo);
 
-    // 成功した場合のみ可視化
+    // 成功した場合のみ可視化（既存の可視化は保持）
     if (result.success && result.restoredInfo) {
       this.visualizeRestoredPosition(result.restoredInfo);
     }

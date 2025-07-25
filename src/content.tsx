@@ -68,8 +68,8 @@ function TestComponent() {
       console.log('Test mode enabled');
     } else {
       console.log('Test mode disabled');
-      // テストモードを無効化時に可視化をクリア
-      RestoreSimulator.clearVisualization();
+      // テストモードを無効化時に全ての可視化をクリア
+      RestoreSimulator.clearAllVisualizations();
     }
   };
 
