@@ -30,7 +30,9 @@ export class TestDataManager {
   static async getAllTestData(): Promise<TestData[]> {
     try {
       const result = await chrome.storage.local.get([this.STORAGE_KEY]);
-      return result[this.STORAGE_KEY] || [];
+      const testData = result[this.STORAGE_KEY] as TestData[];
+      if (!testData) return [];
+      return testData;
     } catch (error) {
       console.error('Failed to get all test data:', error);
       return [];
@@ -130,8 +132,8 @@ export class TestDataManager {
 
   static async importTestData(jsonData: string): Promise<void> {
     try {
-      const importedData = JSON.parse(jsonData);
-      
+      const importedData = JSON.parse(jsonData) as TestData[];
+			
       if (Array.isArray(importedData)) {
         for (const data of importedData) {
           await this.saveTestData(data);
@@ -221,4 +223,4 @@ export class TestDataManager {
       throw error;
     }
   }
-} 
+}

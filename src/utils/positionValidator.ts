@@ -91,8 +91,8 @@ export class PositionValidator {
       }
     );
 
-    let node;
-    while (node = walker.nextNode()) {
+    let node: Node | null;
+    while ((node = walker.nextNode()) !== null) {
       textNodes.push(node as Text);
     }
 
@@ -153,4 +153,4 @@ export class PositionValidator {
   static validateMultiplePositions(positions: TextSelectionInfo[]): PositionValidationResult[] {
     return positions.map(position => this.validateSelectionInfo(position));
   }
-} 
+}

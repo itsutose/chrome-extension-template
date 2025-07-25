@@ -95,9 +95,8 @@ export class RestoreSimulator {
         }
       }
     );
-
-    let node;
-    while (node = walker.nextNode()) {
+    let node: Node | null;
+    while ((node = walker.nextNode()) !== null) {
       textNodes.push(node as Text);
     }
 
@@ -169,7 +168,7 @@ export class RestoreSimulator {
     failedRestores: number;
     averageAccuracy: number;
     averageProcessingTime: number;
-  } {
+    } {
     const total = this.simulationHistory.length;
     const successful = this.simulationHistory.filter(result => result.success).length;
     const failed = total - successful;
@@ -189,4 +188,4 @@ export class RestoreSimulator {
   static clearHistory(): void {
     this.simulationHistory = [];
   }
-} 
+}
