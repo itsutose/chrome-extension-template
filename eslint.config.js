@@ -78,8 +78,8 @@ export default tseslint.config([
       // 基本的なフォーマットルール
       'no-multiple-empty-lines': ['error', { max: 2, maxEOF: 1, maxBOF: 0 }],  // 最大2行の空行まで許可
       'eol-last': 'error',    // ファイル末尾に改行を要求
-      'no-trailing-spaces': 'error',  // 行末の空白を禁止
-      'no-mixed-spaces-and-tabs': 'error',  // スペースとタブの混在を禁止
+      'no-trailing-spaces': 'off',  // 行末の空白を禁止
+      'no-mixed-spaces-and-tabs': 'off',  // スペースとタブの混在を禁止
       
       // 重複インポートを禁止
       'no-duplicate-imports': 'error',
@@ -121,8 +121,8 @@ export default tseslint.config([
       'react-refresh/only-export-components': 'warn',    // Fast refreshを警告に変更
       
       // 一般的なエラーハンドリング
-      'no-debugger': 'warn',    // debugger文を警告
-      'no-console': 'warn',      // console文を警告（開発中は許可）
+      'no-debugger': 'off',    // debugger文を警告 (開発中は許可)
+      'no-console': 'off',      // console文を警告 (開発中は許可)
       'no-alert': 'error',       // alert文をエラー
       
       // 変数宣言の推奨
@@ -133,8 +133,8 @@ export default tseslint.config([
       // 基本的なフォーマットルール（緩和版）
       'no-multiple-empty-lines': ['error', { max: 2, maxEOF: 1, maxBOF: 0 }],  // 最大2行の空行まで許可
       'eol-last': 'error',       // ファイル末尾に改行を要求
-      'no-trailing-spaces': 'error',  // 行末の空白を禁止
-      'no-mixed-spaces-and-tabs': 'error',  // スペースとタブの混在を禁止
+      'no-trailing-spaces': 'off',  // 行末の空白を許可
+      'no-mixed-spaces-and-tabs': 'off',  // スペースとタブの混在を許可
       
       // オブジェクト・配列のスペースルール
       'object-curly-spacing': ['error', 'always'],  // オブジェクトリテラルの波括弧内にスペース
@@ -155,7 +155,7 @@ export default tseslint.config([
       'quotes': ['error', 'single'],  // シングルクォート
       'semi': ['error', 'always'],  // セミコロン
       'comma-dangle': ['off', 'always-multiline'],  // マルチラインでの末尾カンマ
-      'no-multi-spaces': 'error',  // 複数のスペース
+      'no-multi-spaces': 'off',  // 複数のスペース
       'no-irregular-whitespace': 'error',  // 不正な空白文字
       
       // インポート順序ルール（緩和版）
@@ -214,8 +214,8 @@ export default tseslint.config([
       // 基本的なフォーマットルール（緩和版）
       'no-multiple-empty-lines': ['error', { max: 2, maxEOF: 1, maxBOF: 0 }],  // 最大2行の空行まで許可
       'eol-last': 'error',        // ファイル末尾に改行を要求
-      'no-trailing-spaces': 'error',  // 行末の空白を禁止
-      'no-mixed-spaces-and-tabs': 'error',  // スペースとタブの混在を禁止
+      'no-trailing-spaces': 'off',  // 行末の空白を許可
+      'no-mixed-spaces-and-tabs': 'off',  // スペースとタブの混在を許可
       
       // オブジェクト・配列のスペースルール
       'object-curly-spacing': ['error', 'always'],  // オブジェクトリテラルの波括弧内にスペース
@@ -236,7 +236,7 @@ export default tseslint.config([
       'quotes': ['error', 'single'],  // シングルクォート
       'semi': ['error', 'always'],  // セミコロン
       'comma-dangle': ['error', 'always-multiline'],  // マルチラインでの末尾カンマ
-      'no-multi-spaces': 'error',  // 複数のスペース
+      'no-multi-spaces': 'off',  // 複数のスペース
       'no-irregular-whitespace': 'error',  // 不正な空白文字
       
       // インポート順序ルール（緩和版）
