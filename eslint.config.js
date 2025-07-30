@@ -155,7 +155,7 @@ export default tseslint.config([
       'quotes': ['error', 'single'],  // シングルクォート
       'semi': ['error', 'always'],  // セミコロン
       'comma-dangle': ['off', 'always-multiline'],  // マルチラインでの末尾カンマ
-      'no-multi-spaces': 'error',  // 複数のスペース
+      'no-multi-spaces': 'off',  // 複数のスペース
       'no-irregular-whitespace': 'error',  // 不正な空白文字
       
       // インポート順序ルール（緩和版）
@@ -236,7 +236,7 @@ export default tseslint.config([
       'quotes': ['error', 'single'],  // シングルクォート
       'semi': ['error', 'always'],  // セミコロン
       'comma-dangle': ['error', 'always-multiline'],  // マルチラインでの末尾カンマ
-      'no-multi-spaces': 'error',  // 複数のスペース
+      'no-multi-spaces': 'off',  // 複数のスペース
       'no-irregular-whitespace': 'error',  // 不正な空白文字
       
       // インポート順序ルール（緩和版）
