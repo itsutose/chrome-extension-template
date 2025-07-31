@@ -3,6 +3,25 @@ console.log('background script loaded!');
 
 debugger;
 
+// 右クリックメニューの作成
+chrome.runtime.onInstalled.addListener(() => {
+  // 既存のメニューを削除
+  chrome.contextMenus.removeAll(() => {
+    // メモ作成メニューを追加
+    chrome.contextMenus.create({
+      id: 'createMemo',
+      title: 'メモを作成',
+      contexts: ['selection']
+    }, () => {
+      if (chrome.runtime.lastError) {
+        console.error('Failed to create context menu:', chrome.runtime.lastError);
+      } else {
+        console.log('Context menu created successfully');
+      }
+    });
+  });
+});
+
 // 拡張機能のインストール時
 chrome.runtime.onInstalled.addListener(() => {
   console.log('onInstalled event fired!');
@@ -22,6 +41,23 @@ type Message = {
   //   };
   // };
 }
+
+// 右クリックメニューのクリックイベント
+chrome.contextMenus.onClicked.addListener((info, tab) => {
+  console.log('Context menu clicked:', info.menuItemId);
+
+  if (info.menuItemId === 'createMemo' && tab?.id) {
+    console.log('Creating memo for selection:', info.selectionText);
+
+    // Content scriptにメモ作成メッセージを送信
+    chrome.tabs.sendMessage(tab.id, {
+      action: 'createMemo',
+      selectionText: info.selectionText
+    }).catch((error) => {
+      console.error('Failed to send message to content script:', error);
+    });
+  }
+});
 
 // メッセージ受信
 chrome.runtime.onMessage.addListener((message: Message, _sender, sendResponse) => {
@@ -43,7 +79,6 @@ chrome.runtime.onMessage.addListener((message: Message, _sender, sendResponse) =
         });
       }
     });
-
     sendResponse({ success: true });
   }
 });

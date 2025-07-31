@@ -5,7 +5,8 @@
   "description": "TypeScript Chrome Extension with debugging support",
   "permissions": [
     "activeTab",
-    "storage"
+    "storage",
+    "contextMenus"
   ],
   "action": {
     "default_popup": "src/popup.html",
