@@ -58,51 +58,12 @@ function ColorButtonComponent() {
   );
 }
 
-// テストコンポーネント
-function TestComponent() {
-  const [isTestMode, setIsTestMode] = useState(false);
-
-  const toggleTestMode = () => {
-    setIsTestMode(!isTestMode);
-    if (!isTestMode) {
-      console.log('Test mode enabled');
-    } else {
-      console.log('Test mode disabled');
-      // テストモードを無効化時に全ての可視化をクリア
-      RestoreSimulator.clearAllVisualizations();
-    }
-  };
-
-  // テストモード状態をグローバルに公開
-  (window as any).isTestMode = isTestMode;
-
-  return (
-    <div
-      style={{
-        position: 'fixed',
-        top: '90px',
-        right: '10px',
-        background: isTestMode ? '#dc3545' : '#6c757d',
-        color: 'white',
-        padding: '8px',
-        cursor: 'pointer',
-        zIndex: '10000',
-        fontSize: '12px'
-      }}
-      onClick={toggleTestMode}
-    >
-      Test {isTestMode ? 'ON' : 'OFF'}
-    </div>
-  );
-}
-
 // メインアプリコンポーネント
 function ContentApp() {
   return (
     <div id="content-app">
       <CountComponent />
       <ColorButtonComponent />
-      <TestComponent />
     </div>
   );
 }
@@ -135,27 +96,21 @@ function handleCreateMemo(selectionText: string) {
         }
       });
       // テストモード時の自動検証
-      if ((window as any).isTestMode) {
-        console.log('=== テストモード: 自動検証開始 ===');
+      console.log('=== テストモード: 自動検証開始 ===');
 
-        try {
-          // PositionValidatorで検証
-          // const validationResult = PositionValidator.validateSelectionInfo(currentSelection);
-          // console.log('PositionValidator結果:', validationResult);
+      try {
+        // RestoreSimulatorでシミュレーション
+        const simulationResult = RestoreSimulator.simulateRestoreWithVisualization(currentSelection);
+        console.log('RestoreSimulator結果:', simulationResult);
 
-          // RestoreSimulatorでシミュレーション
-          const simulationResult = RestoreSimulator.simulateRestoreWithVisualization(currentSelection);
-          console.log('RestoreSimulator結果:', simulationResult);
-
-          // 結果の要約
-          console.log('=== 検証結果要約 ===');
-          // console.log(`精度: ${validationResult.accuracy.toFixed(3)}`);
-          console.log(`処理時間: ${simulationResult.processingTime}ms`);
-          console.log(`成功: ${simulationResult.success ? 'YES' : 'NO'}`);
-          console.log('========================');
-        } catch (error) {
-          console.error('テスト検証中にエラーが発生:', error);
-        }
+        // 結果の要約
+        console.log('=== 検証結果要約 ===');
+        // console.log(`精度: ${validationResult.accuracy.toFixed(3)}`);
+        console.log(`処理時間: ${simulationResult.processingTime}ms`);
+        console.log(`成功: ${simulationResult.success ? 'YES' : 'NO'}`);
+        console.log('========================');
+      } catch (error) {
+        console.error('テスト検証中にエラーが発生:', error);
       }
       
       // TODO: メモ作成UIの表示（002番のissueで実装予定）
