@@ -2,7 +2,12 @@ import React, { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { createRoot } from 'react-dom/client';
 import '../styles/memo.css';
-import type { TextSelectionInfo } from '../types/memo';
+import type { MemoData, MemoPosition, TextSelectionInfo } from '../types/memo';
+
+// ユーティリティ関数
+function generateId(): string {
+  return Date.now().toString(36) + Math.random().toString(36).substr(2);
+}
 
 // MemoDisplayコンポーネント
 interface MemoDisplayProps {
@@ -99,9 +104,44 @@ const MemoContainer: React.FC<MemoContainerProps> = ({ selectionInfo, memoText, 
 };
 
 /**
- * メモ表示UIを作成する関数（JSXコンポーネント版）
+ * メモを作成する（位置情報なし）
  */
-export function createMemoDisplay(selectionInfo: TextSelectionInfo, memoText: string) {
+export function createMemo(content: string, selectedText?: string): MemoData {
+  const memo: MemoData = {
+    id: generateId(),
+    text: selectedText || '',
+    content: content,
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+    tags: [],
+    color: '#fff',
+    isVisible: true,
+  };
+  
+  console.log('メモを作成しました:', memo);
+  return memo;
+}
+
+/**
+ * メモを特定位置に配置する
+ */
+export function placeMemo(memoId: string, selectionInfo: TextSelectionInfo): MemoPosition {
+  const position: MemoPosition = {
+    id: generateId(),
+    memoId: memoId,
+    pageUrl: window.location.href,
+    selectionInfo: selectionInfo,
+    createdAt: Date.now(),
+  };
+  
+  console.log('メモを配置しました:', position);
+  return position;
+}
+
+/**
+ * メモ表示UIを作成する関数（分離版）
+ */
+export function createMemoDisplay(memo: MemoData, position?: MemoPosition) {
   // 既存のメモ表示を削除
   const existingMemo = document.getElementById('memo-display');
   if (existingMemo) {
@@ -126,19 +166,37 @@ export function createMemoDisplay(selectionInfo: TextSelectionInfo, memoText: st
     root.remove();
   };
 
+  // 位置情報がある場合は位置指定表示、ない場合はデフォルト位置
+  const selectionInfo = position?.selectionInfo || {
+    text: memo.text,
+    startOffset: 0,
+    endOffset: 0,
+    startContainer: document.body,
+    endContainer: document.body,
+    parentPreviousSiblingNode: document.body,
+    parentNextSiblingNode: document.body,
+    parentPreviousSiblingElement: document.body as Element,
+    parentNextSiblingElement: document.body as Element,
+    range: document.createRange(),
+    boundingRect: new DOMRect(20, 20, 100, 20),
+    pageUrl: window.location.href,
+    timestamp: Date.now(),
+  };
+
   reactRoot.render(
     <MemoContainer
       selectionInfo={selectionInfo}
-      memoText={memoText}
+      memoText={memo.text}
       onClose={handleClose}
     />
   );
   
-  console.log('メモ表示UIを作成しました（JSX版）:', {
-    position: {
+  console.log('メモ表示UIを作成しました（分離版）:', {
+    memo: memo,
+    position: position,
+    displayPosition: {
       x: selectionInfo.boundingRect.x,
       y: selectionInfo.boundingRect.bottom
-    },
-    text: memoText
+    }
   });
 }

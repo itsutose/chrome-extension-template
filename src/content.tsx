@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { createMemoDisplay } from './utils/memo';
+import { createMemo, createMemoDisplay, placeMemo } from './utils/memo';
 import { RestoreMemoPosition } from './utils/restoreMemoPosition';
 import { TextSelectionWatcher } from './utils/textSelection';
 
@@ -70,26 +70,33 @@ function handleCreateMemo(selectionText: string) {
       });
 
       try {
-        // 復元アルゴリズムで位置を特定
+        // 1. メモを作成（位置情報なし）
+        const memo = createMemo('新しいメモ', selectionText);
+        
+        // 2. 復元アルゴリズムで位置を特定
         const position = RestoreMemoPosition.findRestoredInfo(currentSelection);
         if (position) {
           const restoreInfo = RestoreMemoPosition.createRestoreInfo(position, currentSelection);
           const success = RestoreMemoPosition.restorePosition(restoreInfo);
           console.log('復元結果:', { success, restoreInfo });
           
-          // メモ表示UIを作成
+          // 3. メモを特定位置に配置
           if (success && restoreInfo) {
-            createMemoDisplay(restoreInfo, selectionText);
+            const memoPosition = placeMemo(memo.id, restoreInfo);
+            // 4. メモ表示UIを作成
+            createMemoDisplay(memo, memoPosition);
           }
         } else {
           console.log('復元位置が見つかりませんでした');
-          // 現在の選択位置にメモを表示
-          createMemoDisplay(currentSelection, selectionText);
+          // 現在の選択位置にメモを配置
+          const memoPosition = placeMemo(memo.id, currentSelection);
+          createMemoDisplay(memo, memoPosition);
         }
       } catch (error) {
         console.error('メモ作成中にエラーが発生:', error);
-        // エラー時は現在の選択位置にメモを表示
-        createMemoDisplay(currentSelection, selectionText);
+        // エラー時はメモのみ作成（位置指定なし）
+        const memo = createMemo('新しいメモ', selectionText);
+        createMemoDisplay(memo);
       }
     } else {
       console.warn('No current selection available for memo creation');
