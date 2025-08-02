@@ -72,7 +72,7 @@ function handleCreateMemo(selectionText: string) {
 
       try {
         // RestoreSimulatorで復元テスト
-        const position = RestoreSimulator.findRestorePosition(currentSelection);
+        const position = RestoreSimulator.findRestoredInfo(currentSelection);
         if (position) {
           const restoreInfo = RestoreSimulator.createRestoreInfo(position, currentSelection);
           const success = RestoreSimulator.restorePosition(restoreInfo);

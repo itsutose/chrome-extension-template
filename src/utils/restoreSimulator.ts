@@ -1,72 +1,73 @@
-import type { RestoreSimulationResult, TextSelectionInfo } from '../types/memo';
+import type { TextSelectionInfo } from '../types/memo';
 
 export class RestoreSimulator {
   private static currentHighlights: Map<string, HTMLElement> = new Map();
   private static highlightCounter = 0;
 
-  static simulateRestore(originalInfo: TextSelectionInfo): RestoreSimulationResult {
-    const startTime = Date.now();
-    const errors: string[] = [];
+  // static simulateRestore(originalInfo: TextSelectionInfo): RestoreSimulationResult {
+  //   const startTime = Date.now();
+  //   const errors: string[] = [];
 
-    try {
-      // 1. 復元する箇所を探索
-      const exactMatch = this.findRestoredInfo(originalInfo, errors);
+  //   try {
+  //     // 1. 復元する箇所を探索
+  //     const exactMatch = this.findRestoredInfo(originalInfo, errors);
 
-      if (!exactMatch) {
-        errors.push('No exact text match found');
-        return {
-          success: false,
-          originalInfo,
-          restoredInfo: null,
-          accuracy: 0,
-          processingTime: Date.now() - startTime,
-          errors
-        };
-      }
+  //     if (!exactMatch) {
+  //       errors.push('No exact text match found');
+  //       return {
+  //         success: false,
+  //         originalInfo,
+  //         restoredInfo: null,
+  //         accuracy: 0,
+  //         processingTime: Date.now() - startTime,
+  //         errors
+  //       };
+  //     }
 
-      // 2. 復元を実行
-      const restoredInfo = this.performRestore(exactMatch, originalInfo, errors);
+  //     // 2. 復元を実行
+  //     const restoredInfo = this.createRestoreInfo(exactMatch, originalInfo, errors);
 
-      // 3. 精度を計算
-      const accuracy = this.calculateRestoreAccuracy(originalInfo, restoredInfo);
+  //     // 3. 精度を計算
+  //     const accuracy = this.calculateRestoreAccuracy(originalInfo, restoredInfo);
 
-      // 4. 処理時間を計算
-      const processingTime = Date.now() - startTime;
+  //     // 4. 処理時間を計算
+  //     const processingTime = Date.now() - startTime;
 
-      // 5. 結果を作成
-      const result: RestoreSimulationResult = {
-        success: restoredInfo !== null,
-        originalInfo,
-        restoredInfo,
-        accuracy,
-        processingTime,
-        errors
-      };
+  //     // 5. 結果を作成
+  //     const result: RestoreSimulationResult = {
+  //       success: restoredInfo !== null,
+  //       originalInfo,
+  //       restoredInfo,
+  //       accuracy,
+  //       processingTime,
+  //       errors
+  //     };
 
-      return result;
+  //     return result;
 
-    } catch (error) {
-      const result: RestoreSimulationResult = {
-        success: false,
-        originalInfo,
-        restoredInfo: null,
-        accuracy: 0,
-        processingTime: Date.now() - startTime,
-        errors: [`Error: ${error instanceof Error ? error.message : 'Unknown error'}`]
-      };
+  //   } catch (error) {
+  //     const result: RestoreSimulationResult = {
+  //       success: false,
+  //       originalInfo,
+  //       restoredInfo: null,
+  //       accuracy: 0,
+  //       processingTime: Date.now() - startTime,
+  //       errors: [`Error: ${error instanceof Error ? error.message : 'Unknown error'}`]
+  //     };
 
-      return result;
-    }
-  }
+  //     return result;
+  //   }
+  // }
 
   /**
-   * 復元位置を探索する（内部実装）
+   * 復元位置を探索する
    */
-  private static findRestoredInfo(originalInfo: TextSelectionInfo, errors: string[]): {
+  static findRestoredInfo(originalInfo: TextSelectionInfo): {
     node: Text;
     startOffset: number;
     endOffset: number;
   } | null {
+    const errors: string[] = [];
     try {
       // 1. テキストノードの検索
       const textNodes = this.getAllTextNodes();
@@ -280,11 +281,12 @@ export class RestoreSimulator {
   /**
    * 復元情報を作成する（内部実装）
    */
-  private static performRestore(exactMatch: {
+  static createRestoreInfo(exactMatch: {
     node: Text;
     startOffset: number;
     endOffset: number;
-  }, originalInfo: TextSelectionInfo, errors: string[]): TextSelectionInfo | null {
+  }, originalInfo: TextSelectionInfo): TextSelectionInfo | null {
+    const errors: string[] = [];
     try {
    
       // 3. 復元された位置情報の作成
@@ -320,42 +322,6 @@ export class RestoreSimulator {
     range.setStart(match.node, match.startOffset);
     range.setEnd(match.node, match.endOffset);
     return range.getBoundingClientRect();
-  }
-
-  private static calculateRestoreAccuracy(original: TextSelectionInfo, restored: TextSelectionInfo | null): number {
-    if (!restored) return 0;
-
-    // テキストの完全一致（1.0または0.0）
-    const textAccuracy = original.text === restored.text ? 1.0 : 0.0;
-
-    return textAccuracy;
-  }
-
-
-  /**
-   * 復元位置を探索する
-   * 元の選択情報から復元すべき位置を特定する
-   */
-  static findRestorePosition(originalInfo: TextSelectionInfo): {
-    node: Text;
-    startOffset: number;
-    endOffset: number;
-  } | null {
-    const errors: string[] = [];
-    return this.findRestoredInfo(originalInfo, errors);
-  }
-
-  /**
-   * 復元情報を作成する
-   * 探索された位置から復元情報オブジェクトを作成する
-   */
-  static createRestoreInfo(exactMatch: {
-    node: Text;
-    startOffset: number;
-    endOffset: number;
-  }, originalInfo: TextSelectionInfo): TextSelectionInfo | null {
-    const errors: string[] = [];
-    return this.performRestore(exactMatch, originalInfo, errors);
   }
 
   /**
@@ -405,111 +371,52 @@ export class RestoreSimulator {
     }
   }
 
-  /**
-   * 復元された位置を可視化（復元機能のテスト用途）
-   * 背景色付きspanで復元位置をハイライト表示
-   */
-  static visualizeRestoredPosition(restoredInfo: TextSelectionInfo | null): void {
-    if (!restoredInfo) {
-      console.log('復元情報がないため可視化をスキップ');
-      return;
-    }
+  // /**
+  //  * 特定の可視化をクリア（復元テスト用途）
+  //  */
+  // static clearSpecificVisualization(highlightId: string): void {
+  //   const highlight = this.currentHighlights.get(highlightId);
+  //   if (highlight) {
+  //     try {
+  //       const parent = highlight.parentNode;
+  //       if (parent) {
+  //         parent.replaceChild(
+  //           document.createTextNode(highlight.textContent || ''),
+  //           highlight
+  //         );
+  //       }
+  //       this.currentHighlights.delete(highlightId);
+  //       console.log(`可視化 #${highlightId} をクリアしました`);
+  //     } catch (error) {
+  //       console.error(`可視化 #${highlightId} のクリアに失敗:`, error);
+  //     }
+  //   }
+  // }
 
-    try {
-      const range = document.createRange();
-      range.setStart(restoredInfo.startContainer, restoredInfo.startOffset);
-      range.setEnd(restoredInfo.endContainer, restoredInfo.endOffset);
+  // /**
+  //  * 全ての可視化をクリア（復元テスト用途）
+  //  */
+  // static clearAllVisualizations(): void {
+  //   const highlightIds = Array.from(this.currentHighlights.keys());
+  //   highlightIds.forEach(id => this.clearSpecificVisualization(id));
+  //   this.highlightCounter = 0;
+  //   console.log('全ての可視化をクリアしました');
+  // }
 
-      const highlightId = `restore-highlight-${++this.highlightCounter}`;
-      const span = document.createElement('span');
-      
-      // 復元位置のハイライト用スタイル
-      span.style.backgroundColor = '#ffeb3b'; // 黄色
-      span.style.color = '#000000';
-      span.style.position = 'relative';
-      span.style.zIndex = '1000';
-      span.title = `復元位置 #${this.highlightCounter}`;
-      span.id = highlightId;
-
-      range.surroundContents(span);
-      this.currentHighlights.set(highlightId, span);
-      
-      console.log(`復元位置 #${this.highlightCounter} を可視化しました:`, {
-        text: restoredInfo.text,
-        position: {
-          x: restoredInfo.boundingRect.x,
-          y: restoredInfo.boundingRect.y,
-          width: restoredInfo.boundingRect.width,
-          height: restoredInfo.boundingRect.height
-        }
-      });
-
-    } catch (error) {
-      console.error('復元位置の可視化に失敗:', error);
-    }
-  }
-
-  /**
-   * 特定の可視化をクリア（復元テスト用途）
-   */
-  static clearSpecificVisualization(highlightId: string): void {
-    const highlight = this.currentHighlights.get(highlightId);
-    if (highlight) {
-      try {
-        const parent = highlight.parentNode;
-        if (parent) {
-          parent.replaceChild(
-            document.createTextNode(highlight.textContent || ''),
-            highlight
-          );
-        }
-        this.currentHighlights.delete(highlightId);
-        console.log(`可視化 #${highlightId} をクリアしました`);
-      } catch (error) {
-        console.error(`可視化 #${highlightId} のクリアに失敗:`, error);
-      }
-    }
-  }
-
-  /**
-   * 全ての可視化をクリア（復元テスト用途）
-   */
-  static clearAllVisualizations(): void {
-    const highlightIds = Array.from(this.currentHighlights.keys());
-    highlightIds.forEach(id => this.clearSpecificVisualization(id));
-    this.highlightCounter = 0;
-    console.log('全ての可視化をクリアしました');
-  }
-
-  /**
-   * 現在の可視化一覧を取得（復元テスト用途）
-   */
-  static getCurrentVisualizations(): Array<{
-    id: string;
-    text: string;
-    color: string;
-    timestamp: number;
-  }> {
-    return Array.from(this.currentHighlights.entries()).map(([id, element]) => ({
-      id,
-      text: element.textContent || '',
-      color: element.style.backgroundColor,
-      timestamp: Date.now()
-    }));
-  }
-
-  /**
-   * 復元シミュレーションを実行し、結果を可視化（既存の可視化は保持）
-   */
-  static simulateRestoreWithVisualization(originalInfo: TextSelectionInfo): RestoreSimulationResult {
-    // シミュレーション実行
-    const result = this.simulateRestore(originalInfo);
-
-    // 成功した場合のみ可視化（既存の可視化は保持）
-    if (result.success && result.restoredInfo) {
-      this.visualizeRestoredPosition(result.restoredInfo);
-    }
-
-    return result;
-  }
+  // /**
+  //  * 現在の可視化一覧を取得（復元テスト用途）
+  //  */
+  // static getCurrentVisualizations(): Array<{
+  //   id: string;
+  //   text: string;
+  //   color: string;
+  //   timestamp: number;
+  // }> {
+  //   return Array.from(this.currentHighlights.entries()).map(([id, element]) => ({
+  //     id,
+  //     text: element.textContent || '',
+  //     color: element.style.backgroundColor,
+  //     timestamp: Date.now()
+  //   }));
+  // }
 }
