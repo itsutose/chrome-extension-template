@@ -192,7 +192,7 @@ export class RestoreSimulator {
       
       if (originalPrevSibling && targetPrevSibling) {
         const prevSimilarity = this.compareElements(originalPrevSibling, targetPrevSibling);
-        similarity += prevSimilarity * 0.3;
+        similarity += prevSimilarity * 0.375;
       }
 
       // 2. 親要素の次の兄弟要素の比較 (重み: 0.3)
@@ -201,7 +201,7 @@ export class RestoreSimulator {
       
       if (originalNextSibling && targetNextSibling) {
         const nextSimilarity = this.compareElements(originalNextSibling, targetNextSibling);
-        similarity += nextSimilarity * 0.3;
+        similarity += nextSimilarity * 0.375;
       }
       
       // 3. 親要素自体の比較 (重み: 0.2)
@@ -210,12 +210,8 @@ export class RestoreSimulator {
       
       if (originalParent && targetParent) {
         const parentSimilarity = this.compareElements(originalParent, targetParent);
-        similarity += parentSimilarity * 0.2;
+        similarity += parentSimilarity * 0.25;
       }
-
-      // 4. 位置情報の比較 (重み: 0.2)
-      const positionSimilarity = this.calculatePositionSimilarity(originalInfo, targetNode);
-      similarity += positionSimilarity * 0.2;
 
     } catch (error) {
       console.error('類似度計算エラー:', error);
@@ -251,7 +247,7 @@ export class RestoreSimulator {
       const id1 = element1.id || '';
       const id2 = element2.id || '';
       if (id1 && id2 && id1 === id2) {
-        similarity += 0.2;
+        similarity += 0.1;
       }
 
       // 4. テキスト内容の比較 (重み: 0.2)
@@ -259,7 +255,7 @@ export class RestoreSimulator {
       const text2 = element2.textContent?.trim() || '';
       if (text1 && text2) {
         const textSimilarity = this.compareStrings(text1, text2);
-        similarity += textSimilarity * 0.2;
+        similarity += textSimilarity * 0.3;
       }
 
     } catch (error) {
@@ -290,35 +286,6 @@ export class RestoreSimulator {
     }
 
     return commonLength / longer.length;
-  }
-
-  /**
-   * simulateRestore.performRestore.findExactTextMatch.calculateNodeSimilarity.calculatePositionSimilarity
-   * 位置情報の類似度を計算
-   */
-  private static calculatePositionSimilarity(originalInfo: TextSelectionInfo, targetNode: Text): number {
-    try {
-      // 対象ノードの位置を計算
-      const range = document.createRange();
-      range.selectNodeContents(targetNode);
-      const targetRect = range.getBoundingClientRect();
-
-      // 元の位置との距離を計算
-      const originalRect = originalInfo.boundingRect;
-      const maxDistance = Math.max(window.innerWidth, window.innerHeight);
-      
-      const centerDistance = Math.sqrt(
-        Math.pow(originalRect.left + originalRect.width / 2 - (targetRect.left + targetRect.width / 2), 2) +
-        Math.pow(originalRect.top + originalRect.height / 2 - (targetRect.top + targetRect.height / 2), 2)
-      );
-
-      // 距離を類似度に変換（距離が近いほど類似度が高い）
-      return Math.max(0, 1 - centerDistance / maxDistance);
-
-    } catch (error) {
-      console.error('位置類似度計算エラー:', error);
-      return 0;
-    }
   }
 
   /**
@@ -372,26 +339,9 @@ export class RestoreSimulator {
     // テキストの完全一致（1.0または0.0）
     const textAccuracy = original.text === restored.text ? 1.0 : 0.0;
 
-    // 位置の一致度
-    const positionAccuracy = this.calculatePositionAccuracy(original.boundingRect, restored.boundingRect);
-
-    // 重み付き平均（テキスト: 60%, 位置: 40%）
-    return textAccuracy * 0.6 + positionAccuracy * 0.4;
+    return textAccuracy;
   }
 
-  /**
-   * simulateRestore.performRestore.findExactTextMatch.calculateRestoreAccuracy.calculatePositionAccuracy
-   */
-  private static calculatePositionAccuracy(originalRect: DOMRect, restoredRect: DOMRect): number {
-    const maxDistance = Math.max(window.innerWidth, window.innerHeight);
-    
-    const centerDistance = Math.sqrt(
-      Math.pow(originalRect.left + originalRect.width / 2 - (restoredRect.left + restoredRect.width / 2), 2) +
-      Math.pow(originalRect.top + originalRect.height / 2 - (restoredRect.top + restoredRect.height / 2), 2)
-    );
-
-    return Math.max(0, 1 - centerDistance / maxDistance);
-  }
 
   static getSimulationHistory(): RestoreSimulationResult[] {
     return [...this.simulationHistory];
