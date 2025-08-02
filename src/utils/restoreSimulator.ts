@@ -1,7 +1,6 @@
 import type { RestoreSimulationResult, TextSelectionInfo } from '../types/memo';
 
 export class RestoreSimulator {
-  private static simulationHistory: RestoreSimulationResult[] = [];
   private static currentHighlights: Map<string, HTMLElement> = new Map();
   private static highlightCounter = 0;
 
@@ -44,9 +43,6 @@ export class RestoreSimulator {
         errors
       };
 
-      // 6. 履歴に追加
-      this.simulationHistory.push(result);
-
       return result;
 
     } catch (error) {
@@ -59,7 +55,6 @@ export class RestoreSimulator {
         errors: [`Simulation error: ${error instanceof Error ? error.message : 'Unknown error'}`]
       };
 
-      this.simulationHistory.push(result);
       return result;
     }
   }
@@ -343,39 +338,9 @@ export class RestoreSimulator {
   }
 
 
-  static getSimulationHistory(): RestoreSimulationResult[] {
-    return [...this.simulationHistory];
-  }
-
-  static getStatistics(): {
-    totalSimulations: number;
-    successfulRestores: number;
-    failedRestores: number;
-    averageAccuracy: number;
-    averageProcessingTime: number;
-    } {
-    const total = this.simulationHistory.length;
-    const successful = this.simulationHistory.filter(result => result.success).length;
-    const failed = total - successful;
-    
-    const totalAccuracy = this.simulationHistory.reduce((sum, result) => sum + result.accuracy, 0);
-    const totalTime = this.simulationHistory.reduce((sum, result) => sum + result.processingTime, 0);
-
-    return {
-      totalSimulations: total,
-      successfulRestores: successful,
-      failedRestores: failed,
-      averageAccuracy: total > 0 ? totalAccuracy / total : 0,
-      averageProcessingTime: total > 0 ? totalTime / total : 0
-    };
-  }
-
-  static clearHistory(): void {
-    this.simulationHistory = [];
-  }
-
   /**
-   * 復元された位置を可視化（背景色付きspanで表示）
+   * 復元された位置を可視化（復元機能のテスト用途）
+   * 背景色付きspanで復元位置をハイライト表示
    */
   static visualizeRestoredPosition(restoredInfo: TextSelectionInfo | null): void {
     if (!restoredInfo) {
@@ -384,7 +349,6 @@ export class RestoreSimulator {
     }
 
     try {
-      // 復元された位置にspanを挿入
       const range = document.createRange();
       range.setStart(restoredInfo.startContainer, restoredInfo.startOffset);
       range.setEnd(restoredInfo.endContainer, restoredInfo.endOffset);
@@ -392,27 +356,15 @@ export class RestoreSimulator {
       const highlightId = `restore-highlight-${++this.highlightCounter}`;
       const span = document.createElement('span');
       
-      // '#ffeb3b', // 黄色
-      // '#4caf50', // 緑
-      // '#2196f3', // 青
-      // '#ff9800', // オレンジ
-      // '#9c27b0', // 紫
-      // '#f44336', // 赤
-      // '#00bcd4', // シアン
-      // '#ff5722'  // ディープオレンジ
-      
-      const color = '#ffeb3b'; // 黄色;
-      span.style.backgroundColor = color;
-      span.style.color = '#000000'; // 黒文字
+      // 復元位置のハイライト用スタイル
+      span.style.backgroundColor = '#ffeb3b'; // 黄色
+      span.style.color = '#000000';
       span.style.position = 'relative';
       span.style.zIndex = '1000';
       span.title = `復元位置 #${this.highlightCounter}`;
       span.id = highlightId;
 
-      // 範囲の内容をspanで囲む
       range.surroundContents(span);
-      
-      // 履歴に追加
       this.currentHighlights.set(highlightId, span);
       
       console.log(`復元位置 #${this.highlightCounter} を可視化しました:`, {
@@ -422,8 +374,7 @@ export class RestoreSimulator {
           y: restoredInfo.boundingRect.y,
           width: restoredInfo.boundingRect.width,
           height: restoredInfo.boundingRect.height
-        },
-        color: color
+        }
       });
 
     } catch (error) {
@@ -432,13 +383,12 @@ export class RestoreSimulator {
   }
 
   /**
-   * 特定の可視化をクリア
+   * 特定の可視化をクリア（復元テスト用途）
    */
   static clearSpecificVisualization(highlightId: string): void {
     const highlight = this.currentHighlights.get(highlightId);
     if (highlight) {
       try {
-        // spanを削除して元のテキストに戻す
         const parent = highlight.parentNode;
         if (parent) {
           parent.replaceChild(
@@ -455,7 +405,7 @@ export class RestoreSimulator {
   }
 
   /**
-   * 全ての可視化をクリア
+   * 全ての可視化をクリア（復元テスト用途）
    */
   static clearAllVisualizations(): void {
     const highlightIds = Array.from(this.currentHighlights.keys());
@@ -465,7 +415,7 @@ export class RestoreSimulator {
   }
 
   /**
-   * 現在の可視化一覧を取得
+   * 現在の可視化一覧を取得（復元テスト用途）
    */
   static getCurrentVisualizations(): Array<{
     id: string;
