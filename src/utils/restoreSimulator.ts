@@ -10,8 +10,8 @@ export class RestoreSimulator {
     const errors: string[] = [];
 
     try {
-      // 1. 復元シミュレーションを実行
-      const restoredInfo = this.performRestoreSimulation(originalInfo, errors);
+      // 1. 復元を実行
+      const restoredInfo = this.performRestore(originalInfo, errors);
 
       // 2. 精度を計算
       const accuracy = this.calculateRestoreAccuracy(originalInfo, restoredInfo);
@@ -49,10 +49,15 @@ export class RestoreSimulator {
     }
   }
 
-  private static performRestoreSimulation(originalInfo: TextSelectionInfo, errors: string[]): TextSelectionInfo | null {
+  /**
+   * simulateRestore.performRestore
+   * 復元を実行
+   */
+  private static performRestore(originalInfo: TextSelectionInfo, errors: string[]): TextSelectionInfo | null {
     try {
       // 1. テキストノードの検索
       const textNodes = this.getAllTextNodes();
+
       if (textNodes.length === 0) {
         errors.push('No text nodes found on page');
         return null;
@@ -86,6 +91,10 @@ export class RestoreSimulator {
     }
   }
 
+  /**
+   * simulateRestore.performRestore.getAllTextNodes
+   * ページ内のすべてのテキストノードを取得
+   */
   private static getAllTextNodes(): Text[] {
     const textNodes: Text[] = [];
     const walker = document.createTreeWalker(
@@ -106,6 +115,10 @@ export class RestoreSimulator {
     return textNodes;
   }
 
+  /**
+   * simulateRestore.performRestore.findExactTextMatch
+   * 完全一致するテキストを検索
+   */
   private static findExactTextMatch(originalInfo: TextSelectionInfo, textNodes: Text[]): {
     node: Text;
     startOffset: number;
@@ -159,6 +172,7 @@ export class RestoreSimulator {
   }
 
   /**
+   * simulateRestore.performRestore.findExactTextMatch.calculateNodeSimilarity
    * 周辺ノード情報の類似度を計算
    */
   private static calculateNodeSimilarity(originalInfo: TextSelectionInfo, targetNode: Text): number {
@@ -206,7 +220,8 @@ export class RestoreSimulator {
   }
 
   /**
-   * 要素の類似度を比較
+   * simulateRestore.performRestore.findExactTextMatch.calculateNodeSimilarity.compareElements
+   * 要素の類似度を比較（重み付き平均）
    */
   private static compareElements(element1: Element, element2: Element): number {
     let similarity = 0;
@@ -250,6 +265,7 @@ export class RestoreSimulator {
   }
 
   /**
+   * simulateRestore.performRestore.findExactTextMatch.calculateNodeSimilarity.compareElements.compareStrings
    * 文字列の類似度を比較（簡易版）
    */
   private static compareStrings(str1: string, str2: string): number {
@@ -271,6 +287,7 @@ export class RestoreSimulator {
   }
 
   /**
+   * simulateRestore.performRestore.findExactTextMatch.calculateNodeSimilarity.calculatePositionSimilarity
    * 位置情報の類似度を計算
    */
   private static calculatePositionSimilarity(originalInfo: TextSelectionInfo, targetNode: Text): number {
@@ -298,6 +315,9 @@ export class RestoreSimulator {
     }
   }
 
+  /**
+   * simulateRestore.performRestore.findExactTextMatch.calculateRestoredBoundingRect
+   */
   private static calculateRestoredBoundingRect(match: {
     node: Text;
     startOffset: number;
@@ -322,6 +342,9 @@ export class RestoreSimulator {
     return textAccuracy * 0.6 + positionAccuracy * 0.4;
   }
 
+  /**
+   * simulateRestore.performRestore.findExactTextMatch.calculateRestoreAccuracy.calculatePositionAccuracy
+   */
   private static calculatePositionAccuracy(originalRect: DOMRect, restoredRect: DOMRect): number {
     const maxDistance = Math.max(window.innerWidth, window.innerHeight);
     
@@ -382,27 +405,20 @@ export class RestoreSimulator {
       const highlightId = `restore-highlight-${++this.highlightCounter}`;
       const span = document.createElement('span');
       
-      // 色をランダムに選択（見分けやすくするため）
-      const colors = [
-        '#ffeb3b', // 黄色
-        '#4caf50', // 緑
-        '#2196f3', // 青
-        '#ff9800', // オレンジ
-        '#9c27b0', // 紫
-        '#f44336', // 赤
-        '#00bcd4', // シアン
-        '#ff5722'  // ディープオレンジ
-      ];
-      const colorIndex = (this.highlightCounter - 1) % colors.length;
+      // '#ffeb3b', // 黄色
+      // '#4caf50', // 緑
+      // '#2196f3', // 青
+      // '#ff9800', // オレンジ
+      // '#9c27b0', // 紫
+      // '#f44336', // 赤
+      // '#00bcd4', // シアン
+      // '#ff5722'  // ディープオレンジ
       
-      span.style.backgroundColor = colors[colorIndex];
+      const color = '#ffeb3b'; // 黄色;
+      span.style.backgroundColor = color;
       span.style.color = '#000000'; // 黒文字
-      span.style.padding = '2px 4px';
-      span.style.borderRadius = '3px';
-      span.style.fontWeight = 'bold';
       span.style.position = 'relative';
       span.style.zIndex = '1000';
-      span.style.border = '1px solid #333';
       span.title = `復元位置 #${this.highlightCounter}`;
       span.id = highlightId;
 
@@ -420,7 +436,7 @@ export class RestoreSimulator {
           width: restoredInfo.boundingRect.width,
           height: restoredInfo.boundingRect.height
         },
-        color: colors[colorIndex]
+        color: color
       });
 
     } catch (error) {
