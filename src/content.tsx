@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { RestoreMemoPosition } from './utils/restoreSimulator';
+import { RestoreMemoPosition } from './utils/restoreMemoPosition';
 import { TextSelectionWatcher } from './utils/textSelection';
 
 // debugger;
