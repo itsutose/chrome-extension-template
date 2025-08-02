@@ -25,13 +25,20 @@ const MemoDisplay: React.FC<MemoDisplayProps> = ({ selectionInfo, memoText, onCl
     }
   }, []);
 
+  // 作成時の位置を固定（スクロール位置を加算）
+  const initialScrollX = window.pageXOffset || document.documentElement.scrollLeft;
+  const initialScrollY = window.pageYOffset || document.documentElement.scrollTop;
+  
+  const fixedX = selectionInfo.boundingRect.x + initialScrollX;
+  const fixedY = selectionInfo.boundingRect.bottom + initialScrollY;
+
   return (
     <div
       id="memo-display"
       className="memo-display"
       style={{
-        left: `${selectionInfo.boundingRect.x}px`,
-        top: `${selectionInfo.boundingRect.bottom}px`,
+        left: `${fixedX}px`,
+        top: `${fixedY}px`,
       }}
     >
       {/* メモヘッダー */}
@@ -62,13 +69,20 @@ interface MemoIndicatorProps {
 }
 
 const MemoIndicator: React.FC<MemoIndicatorProps> = ({ selectionInfo, onToggle }) => {
+  // 作成時の位置を固定（スクロール位置を加算）
+  const initialScrollX = window.pageXOffset || document.documentElement.scrollLeft;
+  const initialScrollY = window.pageYOffset || document.documentElement.scrollTop;
+  
+  const fixedX = selectionInfo.boundingRect.right + initialScrollX - 20;
+  const fixedY = selectionInfo.boundingRect.top + initialScrollY - 5;
+
   return (
     <div
       id="memo-indicator"
       className="memo-indicator"
       style={{
-        left: `${selectionInfo.boundingRect.right - 20}px`,
-        top: `${selectionInfo.boundingRect.top - 5}px`,
+        left: `${fixedX}px`,
+        top: `${fixedY}px`,
       }}
       title="メモがあります"
       onClick={onToggle}
