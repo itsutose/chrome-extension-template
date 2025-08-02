@@ -1,63 +1,8 @@
 import type { TextSelectionInfo } from '../types/memo';
 
-export class RestoreSimulator {
+export class RestoreMemoPosition {
   private static currentHighlights: Map<string, HTMLElement> = new Map();
   private static highlightCounter = 0;
-
-  // static simulateRestore(originalInfo: TextSelectionInfo): RestoreSimulationResult {
-  //   const startTime = Date.now();
-  //   const errors: string[] = [];
-
-  //   try {
-  //     // 1. 復元する箇所を探索
-  //     const exactMatch = this.findRestoredInfo(originalInfo, errors);
-
-  //     if (!exactMatch) {
-  //       errors.push('No exact text match found');
-  //       return {
-  //         success: false,
-  //         originalInfo,
-  //         restoredInfo: null,
-  //         accuracy: 0,
-  //         processingTime: Date.now() - startTime,
-  //         errors
-  //       };
-  //     }
-
-  //     // 2. 復元を実行
-  //     const restoredInfo = this.createRestoreInfo(exactMatch, originalInfo, errors);
-
-  //     // 3. 精度を計算
-  //     const accuracy = this.calculateRestoreAccuracy(originalInfo, restoredInfo);
-
-  //     // 4. 処理時間を計算
-  //     const processingTime = Date.now() - startTime;
-
-  //     // 5. 結果を作成
-  //     const result: RestoreSimulationResult = {
-  //       success: restoredInfo !== null,
-  //       originalInfo,
-  //       restoredInfo,
-  //       accuracy,
-  //       processingTime,
-  //       errors
-  //     };
-
-  //     return result;
-
-  //   } catch (error) {
-  //     const result: RestoreSimulationResult = {
-  //       success: false,
-  //       originalInfo,
-  //       restoredInfo: null,
-  //       accuracy: 0,
-  //       processingTime: Date.now() - startTime,
-  //       errors: [`Error: ${error instanceof Error ? error.message : 'Unknown error'}`]
-  //     };
-
-  //     return result;
-  //   }
-  // }
 
   /**
    * 復元位置を探索する
@@ -70,7 +15,7 @@ export class RestoreSimulator {
     const errors: string[] = [];
     try {
       // 1. テキストノードの検索
-      const textNodes = this.getAllTextNodes();
+      const textNodes = this._getAllTextNodes();
 
       if (textNodes.length === 0) {
         errors.push('No text nodes found on page');
@@ -78,7 +23,7 @@ export class RestoreSimulator {
       }
 
       // 2. 完全一致するテキストの検索
-      const exactMatch = this.findExactTextMatch(originalInfo, textNodes);
+      const exactMatch = this._findExactTextMatch(originalInfo, textNodes);
 
       if (!exactMatch) {
         errors.push('No exact text match found');
@@ -95,7 +40,7 @@ export class RestoreSimulator {
   /**
    * ページ内のすべてのテキストノードを取得
    */
-  private static getAllTextNodes(): Text[] {
+  private static _getAllTextNodes(): Text[] {
     const textNodes: Text[] = [];
     const walker = document.createTreeWalker(
       document.body,
@@ -118,7 +63,7 @@ export class RestoreSimulator {
   /**
    * 完全一致するテキストを検索
    */
-  private static findExactTextMatch(originalInfo: TextSelectionInfo, textNodes: Text[]): {
+  private static _findExactTextMatch(originalInfo: TextSelectionInfo, textNodes: Text[]): {
     node: Text;
     startOffset: number;
     endOffset: number;
@@ -139,7 +84,7 @@ export class RestoreSimulator {
       }
 
       // 周辺ノード情報の類似度を計算
-      const similarity = this.calculateNodeSimilarity(originalInfo, node);
+      const similarity = this._calculateNodeSimilarity(originalInfo, node);
       
       candidates.push({
         node,
@@ -173,7 +118,7 @@ export class RestoreSimulator {
   /**
    * 周辺ノード情報の類似度を計算
    */
-  private static calculateNodeSimilarity(originalInfo: TextSelectionInfo, targetNode: Text): number {
+  private static _calculateNodeSimilarity(originalInfo: TextSelectionInfo, targetNode: Text): number {
     let similarity = 0;
     const maxSimilarity = 1.0;
 
@@ -183,7 +128,7 @@ export class RestoreSimulator {
       const targetPrevSibling = (targetNode.parentElement as Element)?.previousElementSibling as Element;
       
       if (originalPrevSibling && targetPrevSibling) {
-        const prevSimilarity = this.compareElements(originalPrevSibling, targetPrevSibling);
+        const prevSimilarity = this._compareElements(originalPrevSibling, targetPrevSibling);
         similarity += prevSimilarity * 0.375;
       }
 
@@ -192,7 +137,7 @@ export class RestoreSimulator {
       const targetNextSibling = (targetNode.parentElement as Element)?.nextElementSibling as Element;
       
       if (originalNextSibling && targetNextSibling) {
-        const nextSimilarity = this.compareElements(originalNextSibling, targetNextSibling);
+        const nextSimilarity = this._compareElements(originalNextSibling, targetNextSibling);
         similarity += nextSimilarity * 0.375;
       }
       
@@ -201,7 +146,7 @@ export class RestoreSimulator {
       const targetParent = targetNode.parentElement as Element;
       
       if (originalParent && targetParent) {
-        const parentSimilarity = this.compareElements(originalParent, targetParent);
+        const parentSimilarity = this._compareElements(originalParent, targetParent);
         similarity += parentSimilarity * 0.25;
       }
 
@@ -216,7 +161,7 @@ export class RestoreSimulator {
   /**
    * 要素の類似度を比較（重み付き平均）
    */
-  private static compareElements(element1: Element, element2: Element): number {
+  private static _compareElements(element1: Element, element2: Element): number {
     let similarity = 0;
     const maxSimilarity = 1.0;
 
@@ -230,7 +175,7 @@ export class RestoreSimulator {
       const class1 = element1.className || '';
       const class2 = element2.className || '';
       if (class1 && class2) {
-        const classSimilarity = this.compareStrings(class1, class2);
+        const classSimilarity = this._compareStrings(class1, class2);
         similarity += classSimilarity * 0.3;
       }
 
@@ -245,7 +190,7 @@ export class RestoreSimulator {
       const text1 = element1.textContent?.trim() || '';
       const text2 = element2.textContent?.trim() || '';
       if (text1 && text2) {
-        const textSimilarity = this.compareStrings(text1, text2);
+        const textSimilarity = this._compareStrings(text1, text2);
         similarity += textSimilarity * 0.3;
       }
 
@@ -260,7 +205,7 @@ export class RestoreSimulator {
   /**
    * 文字列の類似度を比較（簡易版）
    */
-  private static compareStrings(str1: string, str2: string): number {
+  private static _compareStrings(str1: string, str2: string): number {
     if (str1 === str2) return 1.0;
     if (str1.length === 0 || str2.length === 0) return 0.0;
 
@@ -318,7 +263,7 @@ export class RestoreSimulator {
     startOffset: number;
     endOffset: number;
   }): DOMRect {
-    const range = document.createRange();
+    const range: Range = document.createRange();
     range.setStart(match.node, match.startOffset);
     range.setEnd(match.node, match.endOffset);
     return range.getBoundingClientRect();
@@ -335,7 +280,7 @@ export class RestoreSimulator {
     }
 
     try {
-      const range = document.createRange();
+      const range: Range = document.createRange();
       range.setStart(restoredInfo.startContainer, restoredInfo.startOffset);
       range.setEnd(restoredInfo.endContainer, restoredInfo.endOffset);
 
@@ -371,52 +316,4 @@ export class RestoreSimulator {
     }
   }
 
-  // /**
-  //  * 特定の可視化をクリア（復元テスト用途）
-  //  */
-  // static clearSpecificVisualization(highlightId: string): void {
-  //   const highlight = this.currentHighlights.get(highlightId);
-  //   if (highlight) {
-  //     try {
-  //       const parent = highlight.parentNode;
-  //       if (parent) {
-  //         parent.replaceChild(
-  //           document.createTextNode(highlight.textContent || ''),
-  //           highlight
-  //         );
-  //       }
-  //       this.currentHighlights.delete(highlightId);
-  //       console.log(`可視化 #${highlightId} をクリアしました`);
-  //     } catch (error) {
-  //       console.error(`可視化 #${highlightId} のクリアに失敗:`, error);
-  //     }
-  //   }
-  // }
-
-  // /**
-  //  * 全ての可視化をクリア（復元テスト用途）
-  //  */
-  // static clearAllVisualizations(): void {
-  //   const highlightIds = Array.from(this.currentHighlights.keys());
-  //   highlightIds.forEach(id => this.clearSpecificVisualization(id));
-  //   this.highlightCounter = 0;
-  //   console.log('全ての可視化をクリアしました');
-  // }
-
-  // /**
-  //  * 現在の可視化一覧を取得（復元テスト用途）
-  //  */
-  // static getCurrentVisualizations(): Array<{
-  //   id: string;
-  //   text: string;
-  //   color: string;
-  //   timestamp: number;
-  // }> {
-  //   return Array.from(this.currentHighlights.entries()).map(([id, element]) => ({
-  //     id,
-  //     text: element.textContent || '',
-  //     color: element.style.backgroundColor,
-  //     timestamp: Date.now()
-  //   }));
-  // }
 }

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { RestoreSimulator } from './utils/restoreSimulator';
+import { RestoreMemoPosition } from './utils/restoreSimulator';
 import { TextSelectionWatcher } from './utils/textSelection';
 
 // debugger;
@@ -72,10 +72,10 @@ function handleCreateMemo(selectionText: string) {
 
       try {
         // RestoreSimulatorで復元テスト
-        const position = RestoreSimulator.findRestoredInfo(currentSelection);
+        const position = RestoreMemoPosition.findRestoredInfo(currentSelection);
         if (position) {
-          const restoreInfo = RestoreSimulator.createRestoreInfo(position, currentSelection);
-          const success = RestoreSimulator.restorePosition(restoreInfo);
+          const restoreInfo = RestoreMemoPosition.createRestoreInfo(position, currentSelection);
+          const success = RestoreMemoPosition.restorePosition(restoreInfo);
           console.log('復元結果:', { success, restoreInfo });
         } else {
           console.log('復元位置が見つかりませんでした');
