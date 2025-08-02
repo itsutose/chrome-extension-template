@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { createRoot } from 'react-dom/client';
-// import { PositionValidator } from './utils/positionValidator';
 import { RestoreSimulator } from './utils/restoreSimulator';
 import { TextSelectionWatcher } from './utils/textSelection';
 
@@ -32,38 +31,11 @@ function CountComponent() {
   );
 }
 
-// 背景色変更コンポーネント
-function ColorButtonComponent() {
-  const handleClick = () => {
-    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1'];
-    document.body.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-  };
-
-  return (
-    <div
-      style={{
-        position: 'fixed',
-        top: '50px',
-        right: '10px',
-        background: '#28a745',
-        color: 'white',
-        padding: '8px',
-        cursor: 'pointer',
-        zIndex: '10000'
-      }}
-      onClick={handleClick}
-    >
-      Change Color
-    </div>
-  );
-}
-
 // メインアプリコンポーネント
 function ContentApp() {
   return (
     <div id="content-app">
       <CountComponent />
-      <ColorButtonComponent />
     </div>
   );
 }
