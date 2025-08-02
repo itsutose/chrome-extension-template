@@ -10,16 +10,31 @@ export class RestoreSimulator {
     const errors: string[] = [];
 
     try {
-      // 1. 復元を実行
-      const restoredInfo = this.performRestore(originalInfo, errors);
+      // 1. 復元する箇所を探索
+      const exactMatch = this.findRestoredInfo(originalInfo, errors);
 
-      // 2. 精度を計算
+      if (!exactMatch) {
+        errors.push('No exact text match found');
+        return {
+          success: false,
+          originalInfo,
+          restoredInfo: null,
+          accuracy: 0,
+          processingTime: Date.now() - startTime,
+          errors
+        };
+      }
+
+      // 2. 復元を実行
+      const restoredInfo = this.performRestore(exactMatch, originalInfo, errors);
+
+      // 3. 精度を計算
       const accuracy = this.calculateRestoreAccuracy(originalInfo, restoredInfo);
 
-      // 3. 処理時間を計算
+      // 4. 処理時間を計算
       const processingTime = Date.now() - startTime;
 
-      // 4. 結果を作成
+      // 5. 結果を作成
       const result: RestoreSimulationResult = {
         success: restoredInfo !== null,
         originalInfo,
@@ -29,7 +44,7 @@ export class RestoreSimulator {
         errors
       };
 
-      // 5. 履歴に追加
+      // 6. 履歴に追加
       this.simulationHistory.push(result);
 
       return result;
@@ -53,7 +68,11 @@ export class RestoreSimulator {
    * simulateRestore.performRestore
    * 復元を実行
    */
-  private static performRestore(originalInfo: TextSelectionInfo, errors: string[]): TextSelectionInfo | null {
+  private static findRestoredInfo(originalInfo: TextSelectionInfo, errors: string[]): {
+    node: Text;
+    startOffset: number;
+    endOffset: number;
+  } | null {
     try {
       // 1. テキストノードの検索
       const textNodes = this.getAllTextNodes();
@@ -71,20 +90,7 @@ export class RestoreSimulator {
         return null;
       }
 
-      // 3. 復元された位置情報の作成
-      const restoredInfo: TextSelectionInfo = {
-        ...originalInfo,
-        startContainer: exactMatch.node,
-        endContainer: exactMatch.node,
-        startOffset: exactMatch.startOffset,
-        endOffset: exactMatch.endOffset,
-        boundingRect: this.calculateRestoredBoundingRect(exactMatch),
-        timestamp: Date.now()
-      };
-
-      console.log('restoredInfo size:', new TextEncoder().encode(JSON.stringify(restoredInfo)).length, 'bytes');
-      return restoredInfo;
-
+      return exactMatch;
     } catch (error) {
       errors.push(`Simulation error: ${error instanceof Error ? error.message : 'Unknown'}`);
       return null;
@@ -314,6 +320,37 @@ export class RestoreSimulator {
       return 0;
     }
   }
+
+  /**
+   * simulateRestore.performRestore
+   */
+  private static performRestore(exactMatch: {
+    node: Text;
+    startOffset: number;
+    endOffset: number;
+  }, originalInfo: TextSelectionInfo, errors: string[]): TextSelectionInfo | null {
+    try {
+   
+      // 3. 復元された位置情報の作成
+      const restoredInfo: TextSelectionInfo = {
+        ...originalInfo,
+        startContainer: exactMatch.node,
+        endContainer: exactMatch.node,
+        startOffset: exactMatch.startOffset,
+        endOffset: exactMatch.endOffset,
+        boundingRect: this.calculateRestoredBoundingRect(exactMatch),
+        timestamp: Date.now()
+      };
+
+      console.log('restoredInfo size:', new TextEncoder().encode(JSON.stringify(restoredInfo)).length, 'bytes');
+      return restoredInfo;
+
+    } catch (error) {
+      errors.push(`Simulation error: ${error instanceof Error ? error.message : 'Unknown'}`);
+      return null;
+    }
+  }
+
 
   /**
    * simulateRestore.performRestore.findExactTextMatch.calculateRestoredBoundingRect
