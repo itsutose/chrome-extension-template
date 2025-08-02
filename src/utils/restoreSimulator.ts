@@ -52,7 +52,7 @@ export class RestoreSimulator {
         restoredInfo: null,
         accuracy: 0,
         processingTime: Date.now() - startTime,
-        errors: [`Simulation error: ${error instanceof Error ? error.message : 'Unknown error'}`]
+        errors: [`Error: ${error instanceof Error ? error.message : 'Unknown error'}`]
       };
 
       return result;
@@ -60,8 +60,7 @@ export class RestoreSimulator {
   }
 
   /**
-   * simulateRestore.performRestore
-   * 復元を実行
+   * 復元位置を探索する（内部実装）
    */
   private static findRestoredInfo(originalInfo: TextSelectionInfo, errors: string[]): {
     node: Text;
@@ -87,13 +86,12 @@ export class RestoreSimulator {
 
       return exactMatch;
     } catch (error) {
-      errors.push(`Simulation error: ${error instanceof Error ? error.message : 'Unknown'}`);
+      errors.push(`Error: ${error instanceof Error ? error.message : 'Unknown'}`);
       return null;
     }
   }
 
   /**
-   * simulateRestore.performRestore.getAllTextNodes
    * ページ内のすべてのテキストノードを取得
    */
   private static getAllTextNodes(): Text[] {
@@ -117,7 +115,6 @@ export class RestoreSimulator {
   }
 
   /**
-   * simulateRestore.performRestore.findExactTextMatch
    * 完全一致するテキストを検索
    */
   private static findExactTextMatch(originalInfo: TextSelectionInfo, textNodes: Text[]): {
@@ -173,7 +170,6 @@ export class RestoreSimulator {
   }
 
   /**
-   * simulateRestore.performRestore.findExactTextMatch.calculateNodeSimilarity
    * 周辺ノード情報の類似度を計算
    */
   private static calculateNodeSimilarity(originalInfo: TextSelectionInfo, targetNode: Text): number {
@@ -217,7 +213,6 @@ export class RestoreSimulator {
   }
 
   /**
-   * simulateRestore.performRestore.findExactTextMatch.calculateNodeSimilarity.compareElements
    * 要素の類似度を比較（重み付き平均）
    */
   private static compareElements(element1: Element, element2: Element): number {
@@ -262,7 +257,6 @@ export class RestoreSimulator {
   }
 
   /**
-   * simulateRestore.performRestore.findExactTextMatch.calculateNodeSimilarity.compareElements.compareStrings
    * 文字列の類似度を比較（簡易版）
    */
   private static compareStrings(str1: string, str2: string): number {
@@ -284,7 +278,7 @@ export class RestoreSimulator {
   }
 
   /**
-   * simulateRestore.performRestore
+   * 復元情報を作成する（内部実装）
    */
   private static performRestore(exactMatch: {
     node: Text;
@@ -308,14 +302,14 @@ export class RestoreSimulator {
       return restoredInfo;
 
     } catch (error) {
-      errors.push(`Simulation error: ${error instanceof Error ? error.message : 'Unknown'}`);
+      errors.push(`Error: ${error instanceof Error ? error.message : 'Unknown'}`);
       return null;
     }
   }
 
 
   /**
-   * simulateRestore.performRestore.findExactTextMatch.calculateRestoredBoundingRect
+   * 復元された位置の境界矩形を計算
    */
   private static calculateRestoredBoundingRect(match: {
     node: Text;
@@ -337,6 +331,79 @@ export class RestoreSimulator {
     return textAccuracy;
   }
 
+
+  /**
+   * 復元位置を探索する
+   * 元の選択情報から復元すべき位置を特定する
+   */
+  static findRestorePosition(originalInfo: TextSelectionInfo): {
+    node: Text;
+    startOffset: number;
+    endOffset: number;
+  } | null {
+    const errors: string[] = [];
+    return this.findRestoredInfo(originalInfo, errors);
+  }
+
+  /**
+   * 復元情報を作成する
+   * 探索された位置から復元情報オブジェクトを作成する
+   */
+  static createRestoreInfo(exactMatch: {
+    node: Text;
+    startOffset: number;
+    endOffset: number;
+  }, originalInfo: TextSelectionInfo): TextSelectionInfo | null {
+    const errors: string[] = [];
+    return this.performRestore(exactMatch, originalInfo, errors);
+  }
+
+  /**
+   * 実際の復元を実行する
+   * 復元情報をもとにDOM操作で実際の復元を行う
+   */
+  static restorePosition(restoredInfo: TextSelectionInfo | null): boolean {
+    if (!restoredInfo) {
+      console.log('復元情報がないため復元をスキップ');
+      return false;
+    }
+
+    try {
+      const range = document.createRange();
+      range.setStart(restoredInfo.startContainer, restoredInfo.startOffset);
+      range.setEnd(restoredInfo.endContainer, restoredInfo.endOffset);
+
+      const highlightId = `restore-highlight-${++this.highlightCounter}`;
+      const span = document.createElement('span');
+      
+      // 復元位置のハイライト用スタイル
+      span.style.backgroundColor = '#ffeb3b'; // 黄色
+      span.style.color = '#000000';
+      span.style.position = 'relative';
+      span.style.zIndex = '1000';
+      span.title = `復元位置 #${this.highlightCounter}`;
+      span.id = highlightId;
+
+      range.surroundContents(span);
+      this.currentHighlights.set(highlightId, span);
+      
+      console.log(`復元位置 #${this.highlightCounter} を復元しました:`, {
+        text: restoredInfo.text,
+        position: {
+          x: restoredInfo.boundingRect.x,
+          y: restoredInfo.boundingRect.y,
+          width: restoredInfo.boundingRect.width,
+          height: restoredInfo.boundingRect.height
+        }
+      });
+
+      return true;
+
+    } catch (error) {
+      console.error('復元位置の復元に失敗:', error);
+      return false;
+    }
+  }
 
   /**
    * 復元された位置を可視化（復元機能のテスト用途）

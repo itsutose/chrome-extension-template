@@ -71,15 +71,18 @@ function handleCreateMemo(selectionText: string) {
       console.log('=== テストモード: 自動検証開始 ===');
 
       try {
-        // RestoreSimulatorでシミュレーション
-        const simulationResult = RestoreSimulator.simulateRestoreWithVisualization(currentSelection);
-        console.log('RestoreSimulator結果:', simulationResult);
+        // RestoreSimulatorで復元テスト
+        const position = RestoreSimulator.findRestorePosition(currentSelection);
+        if (position) {
+          const restoreInfo = RestoreSimulator.createRestoreInfo(position, currentSelection);
+          const success = RestoreSimulator.restorePosition(restoreInfo);
+          console.log('復元結果:', { success, restoreInfo });
+        } else {
+          console.log('復元位置が見つかりませんでした');
+        }
 
         // 結果の要約
-        console.log('=== 検証結果要約 ===');
-        // console.log(`精度: ${validationResult.accuracy.toFixed(3)}`);
-        console.log(`処理時間: ${simulationResult.processingTime}ms`);
-        console.log(`成功: ${simulationResult.success ? 'YES' : 'NO'}`);
+        console.log('=== 復元テスト結果 ===');
         console.log('========================');
       } catch (error) {
         console.error('テスト検証中にエラーが発生:', error);
