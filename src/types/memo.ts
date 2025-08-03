@@ -31,14 +31,6 @@ export interface MemoData {
   lastSyncAt?: number;
 }
 
-// メモ位置情報（分離後）
-export interface MemoPosition {
-  id: string;
-  memoId: string;
-  pageUrl: string;
-  selectionInfo: TextSelectionInfo;
-  createdAt: number;
-}
 
 // メモ位置情報（分離後）
 export interface MemoPosition {
