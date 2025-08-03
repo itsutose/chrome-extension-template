@@ -25,6 +25,19 @@ export interface MemoData {
   tags: string[];
   color: string;
   isVisible: boolean;
+  // 保存機能用の拡張
+  driveFileId?: string;  // Google DriveファイルID
+  syncStatus: 'synced' | 'pending' | 'error';
+  lastSyncAt?: number;
+}
+
+// メモ位置情報（分離後）
+export interface MemoPosition {
+  id: string;
+  memoId: string;
+  pageUrl: string;
+  selectionInfo: TextSelectionInfo;
+  createdAt: number;
 }
 
 // メモ位置情報（分離後）
