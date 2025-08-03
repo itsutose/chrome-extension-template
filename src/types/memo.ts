@@ -15,22 +15,25 @@ export interface TextSelectionInfo {
   timestamp: number;
 }
 
-// メモデータの基本構造
+// メモデータの基本構造（位置情報を分離）
 export interface MemoData {
   id: string;
   text: string;
   content: string;
-  position: {
-    x: number;
-    y: number;
-    pageUrl: string;
-    selectionInfo: TextSelectionInfo;
-  };
   createdAt: number;
   updatedAt: number;
   tags: string[];
   color: string;
   isVisible: boolean;
+}
+
+// メモ位置情報（分離後）
+export interface MemoPosition {
+  id: string;
+  memoId: string;
+  pageUrl: string;
+  selectionInfo: TextSelectionInfo;
+  createdAt: number;
 }
 
 // 右クリックメニューのメッセージ型
