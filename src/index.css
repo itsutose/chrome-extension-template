@@ -7,6 +7,10 @@
   .memo-card {
     @apply bg-white border border-gray-300 rounded-lg shadow-md;
     @apply p-4 text-sm z-[10000];
+    /* ダークモード対応 */
+    @apply dark:bg-gray-800 dark:border-gray-600 dark:text-gray-200;
+    /* レスポンシブ対応 */
+    @apply max-w-[calc(100vw-40px)] sm:max-w-[300px];
   }
   
   .memo-card:hover {
@@ -16,6 +20,7 @@
   .extension-popup {
     @apply bg-slate-50 border border-gray-300 rounded-lg;
     @apply p-4 min-w-[300px];
+    @apply dark:bg-gray-800 dark:border-gray-600;
   }
   
   .extension-button {
@@ -26,5 +31,6 @@
   .extension-input {
     @apply border border-gray-300 rounded px-3 py-2;
     @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent;
+    @apply dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200;
   }
 }

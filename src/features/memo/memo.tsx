@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { createRoot } from 'react-dom/client';
-import '../../shared/styles/memo.css';
+import '../../index.css';
 import type { MemoData, MemoPosition, TextSelectionInfo } from '../../shared/types/memo';
 
 // ユーティリティ関数
@@ -35,16 +35,22 @@ const MemoDisplay: React.FC<MemoDisplayProps> = ({ selectionInfo, memoText, onCl
   return (
     <div
       id="memo-display"
-      className="memo-display"
+      className="memo-card"
       style={{
         left: `${fixedX}px`,
         top: `${fixedY}px`,
+        position: 'absolute',
+        width: '300px',
+        minHeight: '150px',
       }}
     >
       {/* メモヘッダー */}
-      <div className="memo-header">
-        <span className="memo-title">メモ</span>
-        <button className="memo-close-btn" onClick={onClose}>
+      <div className="flex justify-between items-center mb-2 pb-2 border-b border-gray-200 dark:border-gray-600">
+        <span className="font-semibold text-gray-600 dark:text-gray-300">メモ</span>
+        <button 
+          className="bg-none border-none text-lg cursor-pointer text-gray-400 dark:text-gray-500 p-0 w-5 h-5 flex items-center justify-center transition-colors duration-200 hover:text-gray-600 dark:hover:text-gray-300"
+          onClick={onClose}
+        >
           ×
         </button>
       </div>
@@ -52,7 +58,7 @@ const MemoDisplay: React.FC<MemoDisplayProps> = ({ selectionInfo, memoText, onCl
       {/* メモ内容 */}
       <div
         ref={contentRef}
-        className="memo-content"
+        className="flex-1 min-h-[100px] outline-none break-words border-none resize-none font-inherit text-inherit leading-inherit focus:outline-none"
         contentEditable
         suppressContentEditableWarning
       >
@@ -79,7 +85,7 @@ const MemoIndicator: React.FC<MemoIndicatorProps> = ({ selectionInfo, onToggle }
   return (
     <div
       id="memo-indicator"
-      className="memo-indicator"
+      className="absolute w-2 h-2 bg-blue-500 rounded-full border-2 border-white shadow-md z-[9999] cursor-pointer transition-all duration-200 hover:scale-110 hover:bg-blue-600"
       style={{
         left: `${fixedX}px`,
         top: `${fixedY}px`,
