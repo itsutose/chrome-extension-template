@@ -1,4 +1,5 @@
 import type { MemoData, MemoPosition } from '../types/memo';
+import { getGoogleAuthToken } from './oauth';
 
 // Google Drive API設定
 const GOOGLE_DRIVE_API_BASE = 'https://www.googleapis.com/drive/v3';
@@ -16,25 +17,14 @@ interface GoogleDriveError {
   };
 }
 
-// 認証トークンの取得
-async function getAuthToken(): Promise<string> {
-  return new Promise((resolve, reject) => {
-    chrome.identity.getAuthToken({ interactive: true }, (token) => {
-      if (chrome.runtime.lastError) {
-        reject(new Error(chrome.runtime.lastError.message));
-      } else {
-        resolve(token);
-      }
-    });
-  });
-}
+
 
 // Google Drive APIリクエストの基本関数
 async function makeDriveRequest(
   url: string,
   options: RequestInit = {}
 ): Promise<any> {
-  const token = await getAuthToken();
+  const token = await getGoogleAuthToken();
   
   const response = await fetch(url, {
     ...options,

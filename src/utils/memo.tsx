@@ -130,6 +130,7 @@ export function createMemo(content: string, selectedText?: string): MemoData {
     tags: [],
     color: '#fff',
     isVisible: true,
+    syncStatus: 'pending',
   };
   
   console.log('メモを作成しました:', memo);

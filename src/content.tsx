@@ -123,9 +123,104 @@ function updateCount(newCount: number) {
   console.log('Updating count to:', newCount);
 }
 
+// テスト関数をグローバルに公開（Background Scriptにメッセージを送信）
+(window as any).testGoogleDriveConnection = async () => {
+  try {
+    console.log('testGoogleDriveConnection関数が呼び出されました');
+    const response = await chrome.runtime.sendMessage({
+      action: 'testGoogleDriveConnection'
+    });
+    console.log('テスト結果:', response);
+    return response;
+  } catch (error) {
+    console.error('テスト実行エラー:', error);
+    throw error;
+  }
+};
+
+// デバッグ用：関数の存在確認
+(window as any).checkTestFunction = () => {
+  console.log('testGoogleDriveConnection関数の存在確認:');
+  console.log('typeof testGoogleDriveConnection:', typeof (window as any).testGoogleDriveConnection);
+  console.log('window.testGoogleDriveConnection:', (window as any).testGoogleDriveConnection);
+  console.log('globalThis.testGoogleDriveConnection:', (globalThis as any).testGoogleDriveConnection);
+};
+
+// Google Drive APIテスト用ボタンを作成
+function createTestButton() {
+  // 既存のボタンがあれば削除
+  const existingButton = document.getElementById('google-drive-test-button');
+  if (existingButton) {
+    existingButton.remove();
+  }
+
+  const button = document.createElement('button');
+  button.id = 'google-drive-test-button';
+  button.textContent = 'Test Google Drive API';
+  button.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10000;
+    padding: 10px 15px;
+    background: #4285f4;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 14px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  `;
+
+  button.onclick = async () => {
+    button.textContent = 'Testing...';
+    button.disabled = true;
+    
+    try {
+      const response = await chrome.runtime.sendMessage({
+        action: 'testGoogleDriveConnection'
+      });
+      
+      console.log('Google Drive API テスト結果:', response);
+      
+      if (response.success) {
+        button.textContent = '✅ Test Success';
+        button.style.background = '#34a853';
+        setTimeout(() => {
+          button.textContent = 'Test Google Drive API';
+          button.style.background = '#4285f4';
+          button.disabled = false;
+        }, 3000);
+      } else {
+        button.textContent = '❌ Test Failed';
+        button.style.background = '#ea4335';
+        setTimeout(() => {
+          button.textContent = 'Test Google Drive API';
+          button.style.background = '#4285f4';
+          button.disabled = false;
+        }, 3000);
+      }
+    } catch (error) {
+      console.error('Google Drive APIテスト実行エラー:', error);
+      button.textContent = '❌ Error';
+      button.style.background = '#ea4335';
+      setTimeout(() => {
+        button.textContent = 'Test Google Drive API';
+        button.style.background = '#4285f4';
+        button.disabled = false;
+      }, 3000);
+    }
+  };
+
+  document.body.appendChild(button);
+  console.log('Google Drive APIテストボタンを作成しました');
+}
+
 // 初期化
 initializeApp();
 initializeTextSelectionWatcher();
+createTestButton();
 
 // メッセージ受信
 chrome.runtime.onMessage.addListener((message: { action: string; count?: number; selectionText?: string }) => {

@@ -10,9 +10,11 @@
     "identity"
   ],
   "oauth2": {
-    "client_id": "714349689908-kpeq3i0dss21c9jdogjaejhue08q06qv.apps.googleusercontent.com",
+    "client_id": "1023026132594-oj46tsthi3f6hdff7m0kc05a5u8rumnk.apps.googleusercontent.com",
     "scopes": [
-      "https://www.googleapis.com/auth/drive.file"
+      "https://www.googleapis.com/auth/drive.file",
+      "https://www.googleapis.com/auth/drive.appdata",
+      "https://www.googleapis.com/auth/drive.appfolder"
     ]
   },
   "action": {
