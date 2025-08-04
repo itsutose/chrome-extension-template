@@ -1,9 +1,9 @@
 // バックグラウンドスクリプト
 console.log('background script loaded!');
 
-import type { MemoData, MemoPosition } from './types/memo';
-import { ensureAppFolder, listAllMemoFiles, saveMemoFile } from './utils/memoStorage';
-import { getGoogleAuthToken } from './utils/oauth';
+import type { MemoData, MemoPosition } from '../shared/types/memo';
+import { ensureAppFolder, listAllMemoFiles, saveMemoFile } from '../features/memo/memoStorage';
+import { getGoogleAuthToken } from '../features/auth/oauth';
 
 debugger;
 

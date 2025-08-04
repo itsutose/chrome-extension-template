@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { createRoot } from 'react-dom/client';
 
-import { debugDriveAPI, testDetailedFileList } from './utils/driveAPITest';
-import { clearAuthToken } from './utils/oauth';
+import { debugDriveAPI, testDetailedFileList } from './driveAPITest';
+import { clearAuthToken } from '../features/auth/oauth';
 
 /**
  * 開発・テスト専用のContent Script

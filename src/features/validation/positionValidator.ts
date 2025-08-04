@@ -1,4 +1,4 @@
-import type { PositionValidationResult, TextSelectionInfo } from '../types/memo';
+import type { PositionValidationResult, TextSelectionInfo } from '../../shared/types/memo';
 
 /**
  * テキスト選択位置の検証

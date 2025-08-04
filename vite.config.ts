@@ -12,12 +12,13 @@ export default defineConfig({
       browser: '/Applications/Brave Browser.app/Contents/MacOS/Brave Browser', // ブラウザのパス
     })
   ],
-
+  
   // ビルド設定
   build: {
     sourcemap: 'inline', // ソースマップを埋め込み、デバッグ時に変換後のJSファイルから元のTSファイルを特定できる
     minify: false, // コード（変数、関数名）圧縮なし、デバッグ時にコードを読みやすくするため
     rollupOptions: {
+      external: process.env.NODE_ENV === 'production' ? ['src/dev/**'] : [], // 本番ビルドで開発用コードを除外
       output: {
         sourcemapExcludeSources: false,
         sourcemapPathTransform: (relativeSourcePath) => {

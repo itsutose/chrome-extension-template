@@ -1,5 +1,5 @@
-import { ensureAppFolder, listAllMemoFiles } from './memoStorage';
-import { getGoogleAuthToken } from './oauth';
+import { ensureAppFolder, listAllMemoFiles } from '../features/memo/memoStorage';
+import { getGoogleAuthToken } from '../features/auth/oauth';
 
 /**
  * 統合されたGoogle Drive API テスト・デバッグユーティリティ

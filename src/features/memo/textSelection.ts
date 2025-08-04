@@ -1,4 +1,4 @@
-import type { TextSelectionInfo } from '../types/memo';
+import type { TextSelectionInfo } from '../../shared/types/memo';
 
 // テキスト選択の監視クラス
 export class TextSelectionWatcher {

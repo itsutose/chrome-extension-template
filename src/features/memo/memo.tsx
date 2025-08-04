@@ -1,8 +1,8 @@
 import React, { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { createRoot } from 'react-dom/client';
-import '../styles/memo.css';
-import type { MemoData, MemoPosition, TextSelectionInfo } from '../types/memo';
+import '../../shared/styles/memo.css';
+import type { MemoData, MemoPosition, TextSelectionInfo } from '../../shared/types/memo';
 
 // ユーティリティ関数
 function generateId(): string {

@@ -1,4 +1,4 @@
-import type { PositionValidationResult, TestData, TestStatistics, TextSelectionInfo } from '../types/memo';
+import type { PositionValidationResult, TestData, TestStatistics, TextSelectionInfo } from '../../shared/types/memo';
 
 export class TestDataManager {
   private static readonly STORAGE_KEY = 'memo_test_data';

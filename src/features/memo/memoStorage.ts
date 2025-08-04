@@ -1,5 +1,5 @@
-import type { MemoData, MemoPosition } from '../types/memo';
-import { getGoogleAuthToken } from './oauth';
+import type { MemoData, MemoPosition } from '../../shared/types/memo';
+import { getGoogleAuthToken } from '../auth/oauth';
 
 // Google Drive API設定
 const GOOGLE_DRIVE_API_BASE = 'https://www.googleapis.com/drive/v3';

@@ -1,8 +1,8 @@
 import { createRoot } from 'react-dom/client';
 
-import { createMemo, createMemoDisplay, placeMemo } from './utils/memo';
-import { RestoreMemoPosition } from './utils/restoreMemoPosition';
-import { TextSelectionWatcher } from './utils/textSelection';
+import { createMemo, createMemoDisplay, placeMemo } from '../features/memo/memo';
+import { RestoreMemoPosition } from '../features/memo/restoreMemoPosition';
+import { TextSelectionWatcher } from '../features/memo/textSelection';
 
 // メインアプリコンポーネント（本番用 - テスト機能なし）
 function ContentApp() {

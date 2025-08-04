@@ -1,4 +1,4 @@
-import type { TextSelectionInfo } from '../types/memo';
+import type { TextSelectionInfo } from '../../shared/types/memo';
 
 export class RestoreMemoPosition {
   private static currentHighlights: Map<string, HTMLElement> = new Map();
