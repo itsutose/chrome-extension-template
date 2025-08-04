@@ -5,16 +5,16 @@
 /* Chrome拡張機能用のカスタムスタイル */
 @layer components {
   .memo-card {
-    @apply bg-memo-bg border border-extension-border rounded-memo shadow-memo;
-    @apply p-4 text-memo z-memo;
+    @apply bg-white border border-gray-300 rounded-lg shadow-md;
+    @apply p-4 text-sm z-[10000];
   }
   
   .memo-card:hover {
-    @apply shadow-memo-hover;
+    @apply shadow-lg;
   }
   
   .extension-popup {
-    @apply bg-extension-bg border border-extension-border rounded-lg;
+    @apply bg-slate-50 border border-gray-300 rounded-lg;
     @apply p-4 min-w-[300px];
   }
   
@@ -24,7 +24,7 @@
   }
   
   .extension-input {
-    @apply border border-extension-border rounded px-3 py-2;
+    @apply border border-gray-300 rounded px-3 py-2;
     @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent;
   }
 }
