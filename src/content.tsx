@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { debugDriveAPI } from './utils/debugDriveAPI';
+
+import { debugDriveAPI, testDetailedFileList } from './utils/driveAPITest';
 import { createMemo, createMemoDisplay, placeMemo } from './utils/memo';
 import { clearAuthToken } from './utils/oauth';
 import { RestoreMemoPosition } from './utils/restoreMemoPosition';
-import { testListDriveFiles } from './utils/testFileList';
 import { TextSelectionWatcher } from './utils/textSelection';
 
 // debugger;
@@ -18,7 +18,7 @@ function CountComponent() {
   };
 
   const handleTestFiles = async() => {
-    await testListDriveFiles();
+    await testDetailedFileList();
   };
 
   const handleClearAuth = async() => {
