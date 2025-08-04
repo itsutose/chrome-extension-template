@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Chrome拡張機能用のカスタムスタイル */
+@layer components {
+  .memo-card {
+    @apply bg-memo-bg border border-extension-border rounded-memo shadow-memo;
+    @apply p-4 text-memo z-memo;
+  }
+  
+  .memo-card:hover {
+    @apply shadow-memo-hover;
+  }
+  
+  .extension-popup {
+    @apply bg-extension-bg border border-extension-border rounded-lg;
+    @apply p-4 min-w-[300px];
+  }
+  
+  .extension-button {
+    @apply bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded;
+    @apply transition-colors duration-200;
+  }
+  
+  .extension-input {
+    @apply border border-extension-border rounded px-3 py-2;
+    @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent;
+  }
+}

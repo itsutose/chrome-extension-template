@@ -13,6 +13,11 @@ export default defineConfig({
     })
   ],
   
+  // CSS設定（Tailwind CSS用）
+  css: {
+    postcss: './postcss.config.js',
+  },
+  
   // ビルド設定
   build: {
     sourcemap: 'inline', // ソースマップを埋め込み、デバッグ時に変換後のJSファイルから元のTSファイルを特定できる
