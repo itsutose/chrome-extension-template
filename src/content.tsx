@@ -1,33 +1,109 @@
 import { useState } from 'react';
 import { createRoot } from 'react-dom/client';
+import { debugDriveAPI } from './utils/debugDriveAPI';
 import { createMemo, createMemoDisplay, placeMemo } from './utils/memo';
+import { clearAuthToken } from './utils/oauth';
 import { RestoreMemoPosition } from './utils/restoreMemoPosition';
+import { testListDriveFiles } from './utils/testFileList';
 import { TextSelectionWatcher } from './utils/textSelection';
 
 // debugger;
 
-// カウントコンポーネント
+// カウントコンポーネント（一時的にファイル一覧テスト機能を追加）
 function CountComponent() {
   const [count, setCount] = useState(0);
   
   const handleIncrement = () => {
     setCount(count + 1);
   };
+
+  const handleTestFiles = async() => {
+    await testListDriveFiles();
+  };
+
+  const handleClearAuth = async() => {
+    await clearAuthToken();
+    // Chrome拡張のキャッシュもクリア
+    if (chrome?.identity?.clearAllCachedAuthTokens) {
+      chrome.identity.clearAllCachedAuthTokens(() => {
+        console.log('全認証キャッシュをクリアしました');
+        console.log('認証キャッシュをクリアしました。次回のテストで新しい権限で認証されます。');
+      });
+    }
+  };
+
+  const handleDebugAPI = async() => {
+    await debugDriveAPI();
+  };
+  
   return (
     <div
       style={{
         position: 'fixed',
         top: '10px',
         right: '10px',
-        background: '#007bff',
-        color: 'white',
-        padding: '8px',
-        cursor: 'pointer',
-        zIndex: '10000'
+        zIndex: '10000',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '4px'
       }}
-      onClick={handleIncrement}
     >
-      Count: {count}
+      <div
+        style={{
+          background: '#007bff',
+          color: 'white',
+          padding: '8px',
+          cursor: 'pointer'
+        }}
+        onClick={handleIncrement}
+      >
+        Count: {count}
+      </div>
+      <div
+        style={{
+          background: '#28a745',
+          color: 'white',
+          padding: '8px',
+          cursor: 'pointer',
+          fontSize: '12px',
+          textAlign: 'center'
+        }}
+        onClick={() => {
+          void handleTestFiles();
+        }}
+      >
+        Test All Files
+      </div>
+      <div
+        style={{
+          background: '#dc3545',
+          color: 'white',
+          padding: '8px',
+          cursor: 'pointer',
+          fontSize: '11px',
+          textAlign: 'center'
+        }}
+        onClick={() => {
+          void handleClearAuth();
+        }}
+      >
+        Clear Auth
+      </div>
+      <div
+        style={{
+          background: '#6f42c1',
+          color: 'white',
+          padding: '8px',
+          cursor: 'pointer',
+          fontSize: '11px',
+          textAlign: 'center'
+        }}
+        onClick={() => {
+          void handleDebugAPI();
+        }}
+      >
+        Debug API
+      </div>
     </div>
   );
 }
@@ -124,7 +200,7 @@ function updateCount(newCount: number) {
 }
 
 // テスト関数をグローバルに公開（Background Scriptにメッセージを送信）
-(window as any).testGoogleDriveConnection = async () => {
+(window as any).testGoogleDriveConnection = async() => {
   try {
     console.log('testGoogleDriveConnection関数が呼び出されました');
     const response = await chrome.runtime.sendMessage({
@@ -173,7 +249,7 @@ function createTestButton() {
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   `;
 
-  button.onclick = async () => {
+  button.onclick = async() => {
     button.textContent = 'Testing...';
     button.disabled = true;
     

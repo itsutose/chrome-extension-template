@@ -1,6 +1,7 @@
 // バックグラウンドスクリプト
 console.log('background script loaded!');
 
+import type { MemoData, MemoPosition } from './types/memo';
 import { ensureAppFolder, listAllMemoFiles, saveMemoFile } from './utils/memoStorage';
 import { getGoogleAuthToken } from './utils/oauth';
 
@@ -89,7 +90,7 @@ chrome.runtime.onMessage.addListener((message: Message, _sender, sendResponse) =
   }
   
   if (message.action === 'saveMemo') {
-    saveMemoFile(message.memo as any, message.position as any).then(sendResponse).catch(sendResponse);
+    saveMemoFile(message.memo as MemoData, message.position as MemoPosition | undefined).then(sendResponse).catch(sendResponse);
     return true;
   }
   
@@ -118,7 +119,7 @@ async function testGoogleDriveConnection(): Promise<{ success: boolean; message:
     console.log('Manifest情報:', chrome.runtime.getManifest());
     console.log('ブラウザ情報:', navigator.userAgent);
     
-    // 1. 改善された認証テスト
+    // 1. 改善された認証テスト（過去の動作版の方式を採用）
     console.log('1. 改善された認証テスト...');
     try {
       const testToken = await getGoogleAuthToken();
