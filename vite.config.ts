@@ -23,19 +23,11 @@ export default defineConfig({
     sourcemap: 'inline', // ソースマップを埋め込み、デバッグ時に変換後のJSファイルから元のTSファイルを特定できる
     minify: false, // コード（変数、関数名）圧縮なし、デバッグ時にコードを読みやすくするため
     rollupOptions: {
-      external: process.env.NODE_ENV === 'production' ? ['src/dev/**'] : [], // 本番ビルドで開発用コードを除外
-      output: {
-        sourcemapExcludeSources: false,
-        sourcemapPathTransform: (relativeSourcePath) => {
-          // 正しいソースマップパスを生成
-          if (relativeSourcePath.startsWith('../../')) {
-            return relativeSourcePath.substring(6); // "../../src/" -> "src/"
-          }
-          return relativeSourcePath;
-        }
-      }
+      external: process.env.NODE_ENV === 'production' ? ['src/dev/**'] : [],
     }
   },
+  
+  // define, server設定 (変更なし)
   define: {
     __DEV__: true
   },
