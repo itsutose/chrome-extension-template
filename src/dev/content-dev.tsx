@@ -87,13 +87,21 @@ function updateCount(newCount: number) {
   console.log('Updating count to:', newCount);
 }
 
+// グローバル型定義の拡張
+declare global {
+  interface Window {
+    testGoogleDriveConnection?: () => Promise<unknown>;
+    checkTestFunction?: () => void;
+  }
+}
+
 // テスト関数をグローバルに公開（Background Scriptにメッセージを送信）
-(window as any).testGoogleDriveConnection = async() => {
+window.testGoogleDriveConnection = async() => {
   try {
     console.log('testGoogleDriveConnection関数が呼び出されました');
     const response = await chrome.runtime.sendMessage({
       action: 'testGoogleDriveConnection'
-    });
+    }) as unknown;
     console.log('テスト結果:', response);
     return response;
   } catch (error) {
@@ -103,11 +111,11 @@ function updateCount(newCount: number) {
 };
 
 // デバッグ用：関数の存在確認
-(window as any).checkTestFunction = () => {
+window.checkTestFunction = () => {
   console.log('testGoogleDriveConnection関数の存在確認:');
-  console.log('typeof testGoogleDriveConnection:', typeof (window as any).testGoogleDriveConnection);
-  console.log('window.testGoogleDriveConnection:', (window as any).testGoogleDriveConnection);
-  console.log('globalThis.testGoogleDriveConnection:', (globalThis as any).testGoogleDriveConnection);
+  console.log('typeof testGoogleDriveConnection:', typeof window.testGoogleDriveConnection);
+  console.log('window.testGoogleDriveConnection:', window.testGoogleDriveConnection);
+  console.log('globalThis.testGoogleDriveConnection:', (globalThis as unknown as Window).testGoogleDriveConnection);
 };
 
 // Google Drive APIテスト用ボタンを作成
@@ -133,7 +141,7 @@ function createTestButton() {
     try {
       const response = await chrome.runtime.sendMessage({
         action: 'testGoogleDriveConnection'
-      });
+      }) as { success?: boolean };
       
       console.log('Google Drive API テスト結果:', response);
       
@@ -170,8 +178,8 @@ function createTestButton() {
   console.log('Google Drive APIテストボタンを作成しました');
 }
 
-// 開発用アプリの初期化
-function initializeDevApp() {
+// 開発用アプリの初期化関数をエクスポート
+export function initializeDevApp() {
   const existing = document.getElementById('content-dev-app');
   if (existing) existing.remove();
 
@@ -183,7 +191,7 @@ function initializeDevApp() {
   reactRoot.render(<DevContentApp />);
 }
 
-// 開発用初期化
+// 開発機能の初期化（自動実行）
 initializeDevApp();
 createTestButton();
 
