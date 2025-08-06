@@ -1,8 +1,8 @@
-import { useState } from 'react';
 import { createRoot } from 'react-dom/client';
+import { useState } from 'react';
 
-import { clearAuthToken } from '../features/auth/oauth';
 import { debugDriveAPI, testDetailedFileList } from './driveAPITest';
+import { clearAuthToken } from '../features/auth/oauth';
 
 /**
  * 開発・テスト専用のContent Script
@@ -87,16 +87,7 @@ function updateCount(newCount: number) {
   console.log('Updating count to:', newCount);
 }
 
-// グローバル型定義の拡張
-declare global {
-  interface Window {
-    testGoogleDriveConnection?: () => Promise<unknown>;
-    checkTestFunction?: () => void;
-  }
-}
-
-// テスト関数をグローバルに公開（Background Scriptにメッセージを送信）
-window.testGoogleDriveConnection = async() => {
+(window as any).testGoogleDriveConnection = async() => {
   try {
     console.log('testGoogleDriveConnection関数が呼び出されました');
     const response = await chrome.runtime.sendMessage({
@@ -110,12 +101,11 @@ window.testGoogleDriveConnection = async() => {
   }
 };
 
-// デバッグ用：関数の存在確認
-window.checkTestFunction = () => {
+(window as any).checkTestFunction = () => {
   console.log('testGoogleDriveConnection関数の存在確認:');
-  console.log('typeof testGoogleDriveConnection:', typeof window.testGoogleDriveConnection);
-  console.log('window.testGoogleDriveConnection:', window.testGoogleDriveConnection);
-  console.log('globalThis.testGoogleDriveConnection:', (globalThis as unknown as Window).testGoogleDriveConnection);
+  console.log('typeof testGoogleDriveConnection:', typeof (window as any).testGoogleDriveConnection);
+  console.log('window.testGoogleDriveConnection:', (window as any).testGoogleDriveConnection);
+  console.log('globalThis.testGoogleDriveConnection:', (globalThis as any).testGoogleDriveConnection);
 };
 
 // Google Drive APIテスト用ボタンを作成
@@ -141,7 +131,7 @@ function createTestButton() {
     try {
       const response = await chrome.runtime.sendMessage({
         action: 'testGoogleDriveConnection'
-      }) as { success?: boolean };
+      }) as { success: boolean };
       
       console.log('Google Drive API テスト結果:', response);
       
@@ -178,8 +168,7 @@ function createTestButton() {
   console.log('Google Drive APIテストボタンを作成しました');
 }
 
-// 開発用アプリの初期化関数をエクスポート
-export function initializeDevApp() {
+function initializeDevApp() {
   const existing = document.getElementById('content-dev-app');
   if (existing) existing.remove();
 
@@ -191,16 +180,17 @@ export function initializeDevApp() {
   reactRoot.render(<DevContentApp />);
 }
 
-// 開発機能の初期化（自動実行）
-initializeDevApp();
-createTestButton();
+export function initializeDevFeatures() {
+  console.log("Initializing dev features UI...");
+  initializeDevApp();
+  createTestButton();
+}
 
-// メッセージ受信（開発用）
+// メッセージ受信は残しても良いが、content.tsx側で一元管理する方がベター
 chrome.runtime.onMessage.addListener((message: { action: string; count?: number; selectionText?: string }) => {
   if (message.action === 'updateCount' && message.count !== undefined) {
     updateCount(message.count);
   }
-  // 他のメッセージは本番用content scriptで処理
 });
 
-console.log('Development Content script ready with testing features');
+console.log('Development Content script module loaded');
