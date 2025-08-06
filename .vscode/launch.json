@@ -42,14 +42,9 @@
       ],
       "trace": true,
       "sourceMapPathOverrides": {
-        // ソースマップ内の "vite:///src/*" というパスを、
-        // 実際のワークスペースの "src" ディレクトリにマッピングする
-        "vite:///src/*": "${webRoot}/src/*",
-
-        // ソースマップが相対パスで出力された場合のフォールバック設定
-        // "dist/src/core/..." から見て "../.." は "dist" になるため、そこからのパスを解決
-        "../../src/*": "${webRoot}/src/*"
-      }
+        "../../../src/*": "${workspaceFolder}/src/*",
+      },
+      // "preLaunchTask": "Echo WorkspaceFolder"
     },
     {
       "name": "🔧 Debug Extension (Attach Mode) port:9222",

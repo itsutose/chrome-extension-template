@@ -9,7 +9,7 @@ export default defineConfig({
     react(),                    // React用プラグイン
     webExtension({              // Chrome Extension用プラグイン
       manifest: 'public/manifest.json', // Chrome Extensionのマニフェストファイルのパス
-      browser: '/Applications/Brave Browser.app/Contents/MacOS/Brave Browser', // ブラウザのパス
+      // browser: '/Applications/Brave Browser.app/Contents/MacOS/Brave Browser', // ブラウザのパス
     })
   ],
   
