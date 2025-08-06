@@ -9,13 +9,16 @@
     "lint:fix": "eslint . --fix --cache --cache-location .eslintcache",
     "preview": "vite preview",
     "build": "tsc -b && vite build",
+    "build:clean": "rm -rf dist/* && tsc -b && vite build",
     "build:extension": "vite build --mode production",
     "start:brave": "./start-brave.sh",
     "start:brave:debug": "./start-brave-debug.sh",
     "stop:brave:debug": "./stop-brave-debug.sh",
     "reset:brave:debug": "./reset-brave-debug.sh",
     "auto-reload": "node scripts/auto-reload.js",
-    "dev:auto": "npm run auto-reload"
+    "dev:auto": "npm run auto-reload",
+
+    "echo": "pwd"
   },
   "dependencies": {
     "react": "^19.1.0",
