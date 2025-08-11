@@ -76,36 +76,66 @@ export class RestoreMemoPosition {
     }> = [];
 
     for (const node of textNodes) {
-      const textContent = node.textContent || '';
-      const index = textContent.indexOf(originalInfo.text);
-
-      if (index === -1) {
+      const textContent = node.textContent ?? '';
+      if (textContent.length === 0 || originalInfo.text.length === 0) {
         continue;
       }
 
-      // 周辺ノード情報の類似度を計算
+      // 周辺ノード情報の類似度を計算（ノード単位で一定）
       const similarity = this._calculateNodeSimilarity(originalInfo, node);
-      
-      candidates.push({
-        node,
-        startOffset: index,
-        endOffset: index + originalInfo.text.length,
-        similarity
-      });
+
+      // 同一ノード内の全一致を列挙（オーバーラップも許容）
+      let fromIndex = 0;
+      while (true) {
+        const index = textContent.indexOf(originalInfo.text, fromIndex);
+        if (index === -1) break;
+
+        candidates.push({
+          node,
+          startOffset: index,
+          endOffset: index + originalInfo.text.length,
+          similarity
+        });
+
+        fromIndex = index + 1; // 次位置へ（オーバーラップ対応）
+      }
     }
 
     if (candidates.length === 0) {
       return null;
     }
 
-    // 類似度が最も高い候補を選択
-    const bestMatch = candidates.reduce((best, current) => 
-      current.similarity > best.similarity ? current : best
-    );
+    // オフセット類似度も加味した総合スコアで選択し、同点なら originalInfo のオフセット比に最も近いものを優先
+    const scored = candidates.map(c => {
+      const { similarity: offsetSimilarity, distance: offsetDistance } = this._calculateOffsetSimilarity(
+        originalInfo,
+        c.node,
+        c.startOffset,
+        c.endOffset
+      );
+      const combinedSimilarity = c.similarity * 0.7 + offsetSimilarity * 0.3;
+      return { ...c, offsetSimilarity, offsetDistance, combinedSimilarity };
+    });
 
-    console.log('復元候補の類似度:', candidates.map(c => ({
+    scored.sort((a, b) => {
+      if (b.combinedSimilarity !== a.combinedSimilarity) {
+        return b.combinedSimilarity - a.combinedSimilarity;
+      }
+      if (a.offsetDistance !== b.offsetDistance) {
+        return a.offsetDistance - b.offsetDistance;
+      }
+      // 最後のタイブレーク: 早い位置を優先
+      return a.startOffset - b.startOffset;
+    });
+
+    const bestMatch = scored[0];
+
+    console.log('復元候補の類似度:', scored.map(c => ({
       text: c.node.textContent?.substring(c.startOffset, c.endOffset),
-      similarity: c.similarity
+      nodeSimilarity: c.similarity,
+      offsetSimilarity: c.offsetSimilarity,
+      combinedSimilarity: c.combinedSimilarity,
+      offsetDistance: c.offsetDistance
     })));
 
     return {
@@ -113,6 +143,39 @@ export class RestoreMemoPosition {
       startOffset: bestMatch.startOffset,
       endOffset: bestMatch.endOffset
     };
+  }
+
+  /**
+   * originalInfo の start/endOffset と候補のオフセットの近さを 0..1 の類似度に変換
+   * 比較のためにノード長で正規化して比率空間で距離を算出
+   */
+  private static _calculateOffsetSimilarity(
+    originalInfo: TextSelectionInfo,
+    targetNode: Text,
+    candidateStartOffset: number,
+    candidateEndOffset: number
+  ): { similarity: number; distance: number } {
+    try {
+      const originalNode = originalInfo.startContainer as Text | null;
+      const originalLength = originalNode?.textContent?.length ?? 0;
+      const targetLength = targetNode.textContent?.length ?? 0;
+
+      if (originalLength <= 0 || targetLength <= 0) {
+        return { similarity: 0, distance: 1 };
+      }
+
+      const originalStartRatio = Math.min(Math.max(originalInfo.startOffset / originalLength, 0), 1);
+      const originalEndRatio = Math.min(Math.max(originalInfo.endOffset / originalLength, 0), 1);
+      const targetStartRatio = Math.min(Math.max(candidateStartOffset / targetLength, 0), 1);
+      const targetEndRatio = Math.min(Math.max(candidateEndOffset / targetLength, 0), 1);
+
+      const distance = Math.abs(originalStartRatio - targetStartRatio) + Math.abs(originalEndRatio - targetEndRatio);
+      const normalized = Math.min(distance / 2, 1); // 0..1
+      const similarity = 1 - normalized;
+      return { similarity, distance };
+    } catch {
+      return { similarity: 0, distance: 1 };
+    }
   }
 
   /**
