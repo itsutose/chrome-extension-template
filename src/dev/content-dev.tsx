@@ -1,5 +1,5 @@
-import { useState } from 'react';
 import { createRoot } from 'react-dom/client';
+import { useState } from 'react';
 
 import { debugDriveAPI, testDetailedFileList } from './driveAPITest';
 import { clearAuthToken } from '../features/auth/oauth';
@@ -12,9 +12,39 @@ import { clearAuthToken } from '../features/auth/oauth';
 // カウントコンポーネント（テスト機能付き）
 function CountComponent() {
   const [count, setCount] = useState(0);
+  const [googleDriveTestStatus, setGoogleDriveTestStatus] = useState<'idle' | 'testing' | 'success' | 'error'>('idle');
   
   const handleIncrement = () => {
     setCount(count + 1);
+  };
+
+  const handleTestGoogleDriveAPI = async() => {
+    setGoogleDriveTestStatus('testing');
+    
+    try {
+      const response: unknown = await chrome.runtime.sendMessage({
+        action: 'testGoogleDriveConnection'
+      });
+      
+      console.log('Google Drive API テスト結果:', response);
+      
+      if (response && typeof response === 'object' && 'success' in response && 
+          typeof (response as { success: boolean }).success === 'boolean' && 
+          (response as { success: boolean }).success) {
+        console.log('✅ Google Drive API テスト成功');
+        setGoogleDriveTestStatus('success');
+        // 3秒後に元の状態に戻す
+        setTimeout(() => setGoogleDriveTestStatus('idle'), 3000);
+      } else {
+        console.log('❌ Google Drive API テスト失敗');
+        setGoogleDriveTestStatus('error');
+        setTimeout(() => setGoogleDriveTestStatus('idle'), 3000);
+      }
+    } catch (error) {
+      console.error('Google Drive APIテスト実行エラー:', error);
+      setGoogleDriveTestStatus('error');
+      setTimeout(() => setGoogleDriveTestStatus('idle'), 3000);
+    }
   };
 
   const handleTestFiles = async() => {
@@ -37,37 +67,39 @@ function CountComponent() {
   };
   
   return (
-    <div
-      style={{
-        position: 'fixed',
-        top: '10px',
-        right: '10px',
-        zIndex: '10000',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '4px'
-      }}
-    >
+    <div className="fixed top-2.5 right-2.5 z-[10000] flex flex-col gap-1">
       <div
-        style={{
-          background: '#007bff',
-          color: 'white',
-          padding: '8px',
-          cursor: 'pointer'
-        }}
+        className="bg-blue-500 text-white p-2 cursor-pointer"
         onClick={handleIncrement}
       >
         Count: {count}
       </div>
       <div
-        style={{
-          background: '#28a745',
-          color: 'white',
-          padding: '8px',
-          cursor: 'pointer',
-          fontSize: '12px',
-          textAlign: 'center'
+        className={`text-white p-2 cursor-pointer text-xs text-center ${
+          googleDriveTestStatus === 'testing'
+            ? 'bg-yellow-500'
+            : googleDriveTestStatus === 'success'
+              ? 'bg-green-500'
+              : googleDriveTestStatus === 'error'
+                ? 'bg-red-500'
+                : 'bg-blue-500'
+        }`}
+        onClick={() => {
+          if (googleDriveTestStatus === 'testing') return; // テスト中は無効化
+          void handleTestGoogleDriveAPI();
         }}
+      >
+        {googleDriveTestStatus === 'testing'
+          ? 'Testing...'
+          : googleDriveTestStatus === 'success'
+            ? '✅ Success'
+            : googleDriveTestStatus === 'error'
+              ? '❌ Error'
+              : 'Test Google Drive API'
+        }
+      </div>
+      <div
+        className="bg-green-500 text-white p-2 cursor-pointer text-xs text-center"
         onClick={() => {
           void handleTestFiles();
         }}
@@ -75,14 +107,7 @@ function CountComponent() {
         Test All Files
       </div>
       <div
-        style={{
-          background: '#dc3545',
-          color: 'white',
-          padding: '8px',
-          cursor: 'pointer',
-          fontSize: '11px',
-          textAlign: 'center'
-        }}
+        className="bg-red-500 text-white p-2 cursor-pointer text-xs text-center"
         onClick={() => {
           void handleClearAuth();
         }}
@@ -90,14 +115,7 @@ function CountComponent() {
         Clear Auth
       </div>
       <div
-        style={{
-          background: '#6f42c1',
-          color: 'white',
-          padding: '8px',
-          cursor: 'pointer',
-          fontSize: '11px',
-          textAlign: 'center'
-        }}
+        className="bg-purple-500 text-white p-2 cursor-pointer text-xs text-center"
         onClick={() => {
           void handleDebugAPI();
         }}
@@ -123,11 +141,18 @@ function updateCount(newCount: number) {
   console.log('Updating count to:', newCount);
 }
 
-// テスト関数をグローバルに公開（Background Scriptにメッセージを送信）
-(window as any).testGoogleDriveConnection = async() => {
+// グローバル関数の型定義
+declare global {
+  interface Window {
+    testGoogleDriveConnection: () => Promise<unknown>;
+    checkTestFunction: () => void;
+  }
+}
+
+window.testGoogleDriveConnection = async() => {
   try {
     console.log('testGoogleDriveConnection関数が呼び出されました');
-    const response = await chrome.runtime.sendMessage({
+    const response: unknown = await chrome.runtime.sendMessage({
       action: 'testGoogleDriveConnection'
     });
     console.log('テスト結果:', response);
@@ -138,86 +163,13 @@ function updateCount(newCount: number) {
   }
 };
 
-// デバッグ用：関数の存在確認
-(window as any).checkTestFunction = () => {
+window.checkTestFunction = () => {
   console.log('testGoogleDriveConnection関数の存在確認:');
-  console.log('typeof testGoogleDriveConnection:', typeof (window as any).testGoogleDriveConnection);
-  console.log('window.testGoogleDriveConnection:', (window as any).testGoogleDriveConnection);
-  console.log('globalThis.testGoogleDriveConnection:', (globalThis as any).testGoogleDriveConnection);
+  console.log('typeof testGoogleDriveConnection:', typeof window.testGoogleDriveConnection);
+  console.log('window.testGoogleDriveConnection:', window.testGoogleDriveConnection);
+  console.log('globalThis.testGoogleDriveConnection:', (globalThis as { testGoogleDriveConnection?: () => Promise<unknown> }).testGoogleDriveConnection);
 };
 
-// Google Drive APIテスト用ボタンを作成
-function createTestButton() {
-  // 既存のボタンがあれば削除
-  const existingButton = document.getElementById('google-drive-test-button');
-  if (existingButton) {
-    existingButton.remove();
-  }
-
-  const button = document.createElement('button');
-  button.id = 'google-drive-test-button';
-  button.textContent = 'Test Google Drive API';
-  button.style.cssText = `
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 10000;
-    padding: 10px 15px;
-    background: #4285f4;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    font-size: 14px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  `;
-
-  button.onclick = async() => {
-    button.textContent = 'Testing...';
-    button.disabled = true;
-    
-    try {
-      const response = await chrome.runtime.sendMessage({
-        action: 'testGoogleDriveConnection'
-      });
-      
-      console.log('Google Drive API テスト結果:', response);
-      
-      if (response.success) {
-        button.textContent = '✅ Test Success';
-        button.style.background = '#34a853';
-        setTimeout(() => {
-          button.textContent = 'Test Google Drive API';
-          button.style.background = '#4285f4';
-          button.disabled = false;
-        }, 3000);
-      } else {
-        button.textContent = '❌ Test Failed';
-        button.style.background = '#ea4335';
-        setTimeout(() => {
-          button.textContent = 'Test Google Drive API';
-          button.style.background = '#4285f4';
-          button.disabled = false;
-        }, 3000);
-      }
-    } catch (error) {
-      console.error('Google Drive APIテスト実行エラー:', error);
-      button.textContent = '❌ Error';
-      button.style.background = '#ea4335';
-      setTimeout(() => {
-        button.textContent = 'Test Google Drive API';
-        button.style.background = '#4285f4';
-        button.disabled = false;
-      }, 3000);
-    }
-  };
-
-  document.body.appendChild(button);
-  console.log('Google Drive APIテストボタンを作成しました');
-}
-
-// 開発用アプリの初期化
 function initializeDevApp() {
   const existing = document.getElementById('content-dev-app');
   if (existing) existing.remove();
@@ -230,16 +182,16 @@ function initializeDevApp() {
   reactRoot.render(<DevContentApp />);
 }
 
-// 開発用初期化
-initializeDevApp();
-createTestButton();
+export function initializeDevFeatures() {
+  console.log('Initializing dev features UI...');
+  initializeDevApp();
+}
 
-// メッセージ受信（開発用）
+// メッセージ受信は残しても良いが、content.tsx側で一元管理する方がベター
 chrome.runtime.onMessage.addListener((message: { action: string; count?: number; selectionText?: string }) => {
   if (message.action === 'updateCount' && message.count !== undefined) {
     updateCount(message.count);
   }
-  // 他のメッセージは本番用content scriptで処理
 });
 
-console.log('Development Content script ready with testing features');
+console.log('Development Content script module loaded');

@@ -42,18 +42,9 @@
       ],
       "trace": true,
       "sourceMapPathOverrides": {
-        "webpack:///./src/*": "${webRoot}/src/*",
-        "webpack:///src/*": "${webRoot}/src/*",
-        "webpack:///*": "*",
-        "webpack:///./~/*": "${webRoot}/node_modules/*",
-        "/src/*": "${webRoot}/src/*",
-        "src/*": "${webRoot}/src/*",
-        "./src/*": "${webRoot}/src/*",
-        "vite:///./src/*": "${webRoot}/src/*",
-        "vite:///src/*": "${webRoot}/src/*",
-        "vite:///*": "*",
-        "../../src/*": "${webRoot}/src/*"
-      }
+        "../../../src/*": "${workspaceFolder}/src/*",
+      },
+      // "preLaunchTask": "Echo WorkspaceFolder"
     },
     {
       "name": "🔧 Debug Extension (Attach Mode) port:9222",
