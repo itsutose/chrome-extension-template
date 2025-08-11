@@ -33,6 +33,13 @@ function reloadExtension() {
   isReloading = true;
   console.log('🔄 Reloading extension...');
 
+  // ビルド前にディレクトリを削除
+  exec('rm -rf dist/*', { cwd: projectRoot }, (error, stdout, stderr) => {
+    if (error) {
+      console.error('❌ Directory deletion failed:', error);
+    }
+  });
+
   // ビルドを実行
   exec('npm run build:extension', { cwd: projectRoot }, (error, stdout, stderr) => {
     if (error) {
