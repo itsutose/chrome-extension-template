@@ -163,18 +163,6 @@ export function placeMemo(memoId: string, selectionInfo: TextSelectionInfo): Mem
  * メモ表示UIを作成する関数（分離版）
  */
 export function createMemoDisplay(memo: MemoData, position?: MemoPosition) {
-  // 既存のメモ表示を削除
-  const existingMemo = document.getElementById('memo-display');
-  if (existingMemo) {
-    existingMemo.remove();
-  }
-
-  // 既存のインジケーターを削除
-  const existingIndicator = document.getElementById('memo-indicator');
-  if (existingIndicator) {
-    existingIndicator.remove();
-  }
-
   // Reactルートを作成
   const root = document.createElement('div');
   root.id = 'memo-react-root';
