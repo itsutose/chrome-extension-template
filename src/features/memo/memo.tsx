@@ -12,17 +12,21 @@ function generateId(): string {
 
 // MemoDisplayコンポーネント
 interface MemoDisplayProps {
-  selectionInfo: TextSelectionInfo;
-  memoText: string;
-  onClose: () => void;
-}
-
-interface MemoDisplayProps {
   memoId: string;
   selectionInfo: TextSelectionInfo;
   memoText: string;
   onClose: () => void;
 }
+
+// 位置計算のヘルパー関数
+const calculatePositionFromRect = (rect: DOMRect) => {
+  const scrollX = window.pageXOffset || document.documentElement.scrollLeft;
+  const scrollY = window.pageYOffset || document.documentElement.scrollTop;
+  return {
+    x: rect.x + scrollX,
+    y: rect.bottom + scrollY
+  };
+};
 
 const MemoDisplay: React.FC<MemoDisplayProps> = ({ memoId, selectionInfo, memoText, onClose }) => {
   const contentRef = useRef<HTMLDivElement>(null);
@@ -35,21 +39,11 @@ const MemoDisplay: React.FC<MemoDisplayProps> = ({ memoId, selectionInfo, memoTe
     
     if (spanElement) {
       const rect = spanElement.getBoundingClientRect();
-      const scrollX = window.pageXOffset || document.documentElement.scrollLeft;
-      const scrollY = window.pageYOffset || document.documentElement.scrollTop;
-      return {
-        x: rect.x + scrollX,
-        y: rect.bottom + scrollY
-      };
+      return calculatePositionFromRect(rect);
     }
     
     // fallback: 古い位置情報を使用
-    const initialScrollX = window.pageXOffset || document.documentElement.scrollLeft;
-    const initialScrollY = window.pageYOffset || document.documentElement.scrollTop;
-    return {
-      x: selectionInfo.boundingRect.x + initialScrollX,
-      y: selectionInfo.boundingRect.bottom + initialScrollY
-    };
+    return calculatePositionFromRect(selectionInfo.boundingRect);
   });
   const [isPositionReady, setIsPositionReady] = React.useState(() => {
     // 初期化時に span が見つかった場合は即座に表示可能
@@ -62,18 +56,14 @@ const MemoDisplay: React.FC<MemoDisplayProps> = ({ memoId, selectionInfo, memoTe
     }
   }, []);
 
-  // 位置更新関数をレジストリに登録
+  // 位置更新とイベント監視の統合セットアップ
   useEffect(() => {
     const positionUpdater: MemoPositionUpdater = (rect: DOMRect) => {
-      const scrollX = window.pageXOffset || document.documentElement.scrollLeft;
-      const scrollY = window.pageYOffset || document.documentElement.scrollTop;
-      setPosition({
-        x: rect.x + scrollX,
-        y: rect.bottom + scrollY
-      });
+      setPosition(calculatePositionFromRect(rect));
       setIsPositionReady(true);
     };
 
+    // レジストリに位置更新関数を登録
     MemoUIRegistry.registerPositionUpdater(memoId, positionUpdater);
     
     // マウント時に即座に位置を更新（再表示時の古い位置問題を解決）
@@ -82,14 +72,8 @@ const MemoDisplay: React.FC<MemoDisplayProps> = ({ memoId, selectionInfo, memoTe
       // span が見つからない場合は現在の位置で表示
       setIsPositionReady(true);
     }
-    
-    return () => {
-      MemoUIRegistry.unregisterPositionUpdater(memoId);
-    };
-  }, [memoId]);
 
-  // スクロール・リサイズ時の位置更新
-  useEffect(() => {
+    // スクロール・リサイズ時の位置更新ハンドラー
     const handleUpdate = () => {
       MemoUIRegistry.updateMemoPosition(memoId);
     };
@@ -100,6 +84,7 @@ const MemoDisplay: React.FC<MemoDisplayProps> = ({ memoId, selectionInfo, memoTe
     return () => {
       window.removeEventListener('scroll', handleUpdate);
       window.removeEventListener('resize', handleUpdate);
+      // cleanup は MemoContainer で一括実行されるため、ここでは何もしない
     };
   }, [memoId]);
 

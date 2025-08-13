@@ -13,24 +13,12 @@ export class MemoUIRegistry {
     this.memoIdToToggleHandler.set(memoId, handler);
   }
 
-  static unregisterToggleHandler(memoId: string): void {
-    this.memoIdToToggleHandler.delete(memoId);
-  }
-
   static registerSpanElement(memoId: string, spanElement: HTMLElement): void {
     this.memoIdToSpanElement.set(memoId, spanElement);
   }
 
-  static unregisterSpanElement(memoId: string): void {
-    this.memoIdToSpanElement.delete(memoId);
-  }
-
   static registerPositionUpdater(memoId: string, updater: MemoPositionUpdater): void {
     this.memoIdToPositionUpdater.set(memoId, updater);
-  }
-
-  static unregisterPositionUpdater(memoId: string): void {
-    this.memoIdToPositionUpdater.delete(memoId);
   }
 
   static toggleMemo(memoId: string): void {
@@ -57,8 +45,8 @@ export class MemoUIRegistry {
   }
 
   static cleanup(memoId: string): void {
-    this.unregisterToggleHandler(memoId);
-    this.unregisterSpanElement(memoId);
-    this.unregisterPositionUpdater(memoId);
+    this.memoIdToToggleHandler.delete(memoId);
+    this.memoIdToSpanElement.delete(memoId);
+    this.memoIdToPositionUpdater.delete(memoId);
   }
 }
