@@ -1,4 +1,5 @@
 import type { TextSelectionInfo } from '../../shared/types/memo';
+import { MemoUIRegistry } from './memoUIRegistry';
 
 export class RestoreMemoPosition {
   private static currentHighlights: Map<string, HTMLElement> = new Map();
@@ -336,7 +337,7 @@ export class RestoreMemoPosition {
    * 実際の復元を実行する
    * 復元情報をもとにDOM操作で実際の復元を行う
    */
-  static restorePosition(restoredInfo: TextSelectionInfo | null): boolean {
+  static restorePosition(restoredInfo: TextSelectionInfo | null, memoId?: string): boolean {
     if (!restoredInfo) {
       console.log('復元情報がないため復元をスキップ');
       return false;
@@ -357,9 +358,26 @@ export class RestoreMemoPosition {
       span.style.zIndex = '1000';
       span.title = `復元位置 #${this.highlightCounter}`;
       span.id = highlightId;
+      
+      // メモIDベースのデータ属性も追加（検索用）
+      if (memoId) {
+        span.dataset.memoId = memoId;
+      }
 
       range.surroundContents(span);
       this.currentHighlights.set(highlightId, span);
+
+      // メモIDが与えられていれば、ハイライトクリックでトグル
+      if (memoId) {
+        span.style.cursor = 'pointer';
+        span.addEventListener('click', (e) => {
+          e.stopPropagation();
+          MemoUIRegistry.toggleMemo(memoId);
+        });
+        
+        // span要素をレジストリに登録
+        MemoUIRegistry.registerSpanElement(memoId, span);
+      }
       
       console.log(`復元位置 #${this.highlightCounter} を復元しました:`, {
         text: restoredInfo.text,

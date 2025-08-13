@@ -56,7 +56,7 @@ function main() {
           const position = RestoreMemoPosition.findRestoredInfo(currentSelection);
           if (position) {
             const restoreInfo = RestoreMemoPosition.createRestoreInfo(position, currentSelection);
-            const success = RestoreMemoPosition.restorePosition(restoreInfo);
+            const success = RestoreMemoPosition.restorePosition(restoreInfo, memo.id);
             console.log('復元結果:', { success, restoreInfo });
             
             // 3. メモを特定位置に配置

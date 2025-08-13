@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { createRoot } from 'react-dom/client';
 import '../../index.css';
 import type { MemoData, MemoPosition, TextSelectionInfo } from '../../shared/types/memo';
+import { MemoUIRegistry, type MemoPositionUpdater } from './memoUIRegistry';
 
 // ユーティリティ関数
 function generateId(): string {
@@ -16,8 +17,44 @@ interface MemoDisplayProps {
   onClose: () => void;
 }
 
-const MemoDisplay: React.FC<MemoDisplayProps> = ({ selectionInfo, memoText, onClose }) => {
+interface MemoDisplayProps {
+  memoId: string;
+  selectionInfo: TextSelectionInfo;
+  memoText: string;
+  onClose: () => void;
+}
+
+const MemoDisplay: React.FC<MemoDisplayProps> = ({ memoId, selectionInfo, memoText, onClose }) => {
   const contentRef = useRef<HTMLDivElement>(null);
+  const [position, setPosition] = React.useState(() => {
+    // 初期位置は span の現在位置を取得を試行、取得できなければ fallback
+    const spanElement = document.querySelector(`span[data-memo-id="${memoId}"]`) as HTMLElement ||
+                       Array.from(document.querySelectorAll('span')).find(span => 
+                         span.style.cursor === 'pointer' && span.textContent?.includes(selectionInfo.text)
+                       );
+    
+    if (spanElement) {
+      const rect = spanElement.getBoundingClientRect();
+      const scrollX = window.pageXOffset || document.documentElement.scrollLeft;
+      const scrollY = window.pageYOffset || document.documentElement.scrollTop;
+      return {
+        x: rect.x + scrollX,
+        y: rect.bottom + scrollY
+      };
+    }
+    
+    // fallback: 古い位置情報を使用
+    const initialScrollX = window.pageXOffset || document.documentElement.scrollLeft;
+    const initialScrollY = window.pageYOffset || document.documentElement.scrollTop;
+    return {
+      x: selectionInfo.boundingRect.x + initialScrollX,
+      y: selectionInfo.boundingRect.bottom + initialScrollY
+    };
+  });
+  const [isPositionReady, setIsPositionReady] = React.useState(() => {
+    // 初期化時に span が見つかった場合は即座に表示可能
+    return !!document.querySelector(`span[data-memo-id="${memoId}"]`);
+  });
 
   useEffect(() => {
     if (contentRef.current) {
@@ -25,23 +62,59 @@ const MemoDisplay: React.FC<MemoDisplayProps> = ({ selectionInfo, memoText, onCl
     }
   }, []);
 
-  // 作成時の位置を固定（スクロール位置を加算）
-  const initialScrollX = window.pageXOffset || document.documentElement.scrollLeft;
-  const initialScrollY = window.pageYOffset || document.documentElement.scrollTop;
-  
-  const fixedX = selectionInfo.boundingRect.x + initialScrollX;
-  const fixedY = selectionInfo.boundingRect.bottom + initialScrollY;
+  // 位置更新関数をレジストリに登録
+  useEffect(() => {
+    const positionUpdater: MemoPositionUpdater = (rect: DOMRect) => {
+      const scrollX = window.pageXOffset || document.documentElement.scrollLeft;
+      const scrollY = window.pageYOffset || document.documentElement.scrollTop;
+      setPosition({
+        x: rect.x + scrollX,
+        y: rect.bottom + scrollY
+      });
+      setIsPositionReady(true);
+    };
+
+    MemoUIRegistry.registerPositionUpdater(memoId, positionUpdater);
+    
+    // マウント時に即座に位置を更新（再表示時の古い位置問題を解決）
+    const hasUpdated = MemoUIRegistry.updateMemoPosition(memoId);
+    if (!hasUpdated) {
+      // span が見つからない場合は現在の位置で表示
+      setIsPositionReady(true);
+    }
+    
+    return () => {
+      MemoUIRegistry.unregisterPositionUpdater(memoId);
+    };
+  }, [memoId]);
+
+  // スクロール・リサイズ時の位置更新
+  useEffect(() => {
+    const handleUpdate = () => {
+      MemoUIRegistry.updateMemoPosition(memoId);
+    };
+
+    window.addEventListener('scroll', handleUpdate, { passive: true });
+    window.addEventListener('resize', handleUpdate, { passive: true });
+
+    return () => {
+      window.removeEventListener('scroll', handleUpdate);
+      window.removeEventListener('resize', handleUpdate);
+    };
+  }, [memoId]);
 
   return (
     <div
       id="memo-display"
       className="memo-card"
       style={{
-        left: `${fixedX}px`,
-        top: `${fixedY}px`,
+        left: `${position.x}px`,
+        top: `${position.y}px`,
         position: 'absolute',
         width: '300px',
         minHeight: '150px',
+        opacity: isPositionReady ? 1 : 0,
+        transition: isPositionReady ? 'opacity 0.15s ease-in' : 'none',
       }}
     >
       {/* メモヘッダー */}
@@ -68,51 +141,34 @@ const MemoDisplay: React.FC<MemoDisplayProps> = ({ selectionInfo, memoText, onCl
   );
 };
 
-// MemoIndicatorコンポーネント
-interface MemoIndicatorProps {
-  selectionInfo: TextSelectionInfo;
-  onToggle: () => void;
-}
-
-const MemoIndicator: React.FC<MemoIndicatorProps> = ({ selectionInfo, onToggle }) => {
-  // 作成時の位置を固定（スクロール位置を加算）
-  const initialScrollX = window.pageXOffset || document.documentElement.scrollLeft;
-  const initialScrollY = window.pageYOffset || document.documentElement.scrollTop;
-  
-  const fixedX = selectionInfo.boundingRect.right + initialScrollX - 20;
-  const fixedY = selectionInfo.boundingRect.top + initialScrollY - 5;
-
-  return (
-    <div
-      id="memo-indicator"
-      className="absolute w-2 h-2 bg-blue-500 rounded-full border-2 border-white shadow-md z-[9999] cursor-pointer transition-all duration-200 hover:scale-110 hover:bg-blue-600"
-      style={{
-        left: `${fixedX}px`,
-        top: `${fixedY}px`,
-      }}
-      title="メモがあります"
-      onClick={onToggle}
-    />
-  );
-};
+// インジケーターは使用しない（選択テキストのハイライトクリックでトグル）
 
 // MemoContainerコンポーネント
 interface MemoContainerProps {
+  memoId: string;
   selectionInfo: TextSelectionInfo;
   memoText: string;
   onClose: () => void;
 }
 
-const MemoContainer: React.FC<MemoContainerProps> = ({ selectionInfo, memoText, onClose }) => {
+const MemoContainer: React.FC<MemoContainerProps> = ({ memoId, selectionInfo, memoText, onClose }) => {
   const [isVisible, setIsVisible] = React.useState(true);
 
-  const handleToggle = () => setIsVisible(!isVisible);
+  const handleToggle = React.useCallback(() => setIsVisible((v) => !v), []);
+
+  // レジストリにトグルハンドラを登録/クリーンアップ
+  useEffect(() => {
+    MemoUIRegistry.registerToggleHandler(memoId, handleToggle);
+    return () => {
+      MemoUIRegistry.cleanup(memoId);
+    };
+  }, [memoId, handleToggle]);
 
   return createPortal(
     <>
-      <MemoIndicator selectionInfo={selectionInfo} onToggle={handleToggle} />
       {isVisible && (
         <MemoDisplay
+          memoId={memoId}
           selectionInfo={selectionInfo}
           memoText={memoText}
           onClose={onClose}
@@ -194,6 +250,7 @@ export function createMemoDisplay(memo: MemoData, position?: MemoPosition) {
 
   reactRoot.render(
     <MemoContainer
+      memoId={memo.id}
       selectionInfo={selectionInfo}
       memoText={memo.text}
       onClose={handleClose}
