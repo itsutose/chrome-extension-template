@@ -160,10 +160,10 @@ export default tseslint.config([
       
       // インポート順序ルール（緩和版）
       'sort-imports': ['warn', {
-        ignoreCase: false,           // 大文字小文字を区別
-        ignoreDeclarationSort: false, // インポート宣言の順序をチェック
-        ignoreMemberSort: false,     // メンバーの順序はチェック
-        memberSyntaxSortOrder: ['none', 'all', 'multiple', 'single'],  // メンバー構文の順序
+        ignoreCase: true,           // 大文字小文字を区別
+        ignoreDeclarationSort: true, // インポート宣言の順序をチェック
+        ignoreMemberSort: true,     // メンバーの順序はチェック
+        memberSyntaxSortOrder: ['none', 'all', 'single', 'multiple'],  // メンバー構文の順序
         allowSeparatedGroups: true,  // グループ間の分離を許可
       }],
       
