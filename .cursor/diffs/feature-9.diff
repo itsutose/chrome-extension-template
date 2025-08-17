@@ -1,0 +1,1602 @@
+diff --git a/docs/google-drive-setup.md b/docs/google-drive-setup.md
+new file mode 100644
+index 0000000..70655af
+--- /dev/null
++++ b/docs/google-drive-setup.md
+@@ -0,0 +1,81 @@
++# Google Drive API設定手順
++
++## 1. Google Cloud Platformでの設定
++
++### 1.1 プロジェクトの作成
++1. [Google Cloud Console](https://console.cloud.google.com/)にアクセス
++2. 新しいプロジェクトを作成（例: `chrome-memo-extension`）
++3. プロジェクトを選択
++
++### 1.2 Google Drive APIの有効化
++1. 「APIとサービス」→「ライブラリ」に移動
++2. 「Google Drive API」を検索して選択
++3. 「有効にする」をクリック
++
++### 1.3 OAuth同意画面の設定
++1. 「APIとサービス」→「OAuth同意画面」に移動
++2. ユーザータイプ: 「外部」を選択
++3. アプリ情報を入力:
++   - アプリ名: `Chrome Memo Extension`
++   - ユーザーサポートメール: 開発者のメールアドレス
++   - 開発者の連絡先情報: 開発者のメールアドレス
++
++### 1.4 OAuth 2.0クライアントIDの作成
++1. 「APIとサービス」→「認証情報」に移動
++2. 「認証情報を作成」→「OAuth 2.0クライアントID」を選択
++3. アプリケーションの種類: 「デスクトップアプリ」を選択
++4. 名前: `Chrome Memo Extension Client`
++5. 「作成」をクリック
++
++### 1.5 クライアントIDとシークレットの取得
++- クライアントID: `YOUR_CLIENT_ID.apps.googleusercontent.com`
++- クライアントシークレット: `YOUR_CLIENT_SECRET`
++
++## 2. manifest.jsonの設定
++
++```json
++{
++  "manifest_version": 3,
++  "name": "Chrome Memo Extension",
++  "version": "1.0.0",
++  "permissions": [
++    "identity",
++    "storage"
++  ],
++  "oauth2": {
++    "client_id": "YOUR_CLIENT_ID.apps.googleusercontent.com",
++    "scopes": [
++      "https://www.googleapis.com/auth/drive.file"
++    ]
++  },
++  "background": {
++    "service_worker": "background.js"
++  },
++  "content_scripts": [
++    {
++      "matches": ["<all_urls>"],
++      "js": ["content.js"]
++    }
++  ]
++}
++```
++
++## 3. 環境変数の設定
++
++`.env`ファイルを作成:
++```
++GOOGLE_CLIENT_ID=YOUR_CLIENT_ID.apps.googleusercontent.com
++GOOGLE_CLIENT_SECRET=YOUR_CLIENT_SECRET
++```
++
++## 4. 注意事項
++
++- クライアントIDとシークレットは機密情報として扱う
++- 本番環境では適切なセキュリティ対策を実施
++- OAuth同意画面の公開設定は開発中は「テスト」に設定
++
++## 5. 次のステップ
++
++1. 上記設定を完了後、OAuth認証フローの実装
++2. Google Drive API連携機能の実装
++3. 基本的なファイル操作の実装 
+\ No newline at end of file
+diff --git a/public/manifest.json b/public/manifest.json
+index 05ccde8..f78e186 100644
+--- a/public/manifest.json
++++ b/public/manifest.json
+@@ -6,8 +6,17 @@
+   "permissions": [
+     "activeTab",
+     "storage",
+-    "contextMenus"
++    "contextMenus",
++    "identity"
+   ],
++  "oauth2": {
++    "client_id": "1023026132594-oj46tsthi3f6hdff7m0kc05a5u8rumnk.apps.googleusercontent.com",
++    "scopes": [
++      "https://www.googleapis.com/auth/drive.file",
++      "https://www.googleapis.com/auth/drive.appdata",
++      "https://www.googleapis.com/auth/drive.appfolder"
++    ]
++  },
+   "action": {
+     "default_popup": "src/popup.html",
+     "default_title": "Extension Popup"
+diff --git a/src/background.ts b/src/background.ts
+index 27c4f11..7147988 100644
+--- a/src/background.ts
++++ b/src/background.ts
+@@ -1,6 +1,10 @@
+ // バックグラウンドスクリプト
+ console.log('background script loaded!');
+ 
++import type { MemoData, MemoPosition } from './types/memo';
++import { ensureAppFolder, listAllMemoFiles, saveMemoFile } from './utils/memoStorage';
++import { getGoogleAuthToken } from './utils/oauth';
++
+ debugger;
+ 
+ // 右クリックメニューの作成
+@@ -33,13 +37,10 @@ chrome.runtime.onInstalled.addListener(() => {
+ });
+ 
+ type Message = {
+-  action: 'updateCount';
+-  count: number;
+-  // sender: {
+-  //   tab: {
+-  //     id: number;
+-  //   };
+-  // };
++  action: 'updateCount' | 'testGoogleDriveConnection' | 'saveMemo' | 'loadMemos';
++  count?: number;
++  memo?: unknown;
++  position?: unknown;
+ }
+ 
+ // 右クリックメニューのクリックイベント
+@@ -81,6 +82,22 @@ chrome.runtime.onMessage.addListener((message: Message, _sender, sendResponse) =
+     });
+     sendResponse({ success: true });
+   }
++  
++  // Google Drive API関連のメッセージ処理
++  if (message.action === 'testGoogleDriveConnection') {
++    testGoogleDriveConnection().then(sendResponse).catch(sendResponse);
++    return true; // 非同期レスポンスを示す
++  }
++  
++  if (message.action === 'saveMemo') {
++    saveMemoFile(message.memo as MemoData, message.position as MemoPosition | undefined).then(sendResponse).catch(sendResponse);
++    return true;
++  }
++  
++  if (message.action === 'loadMemos') {
++    listAllMemoFiles().then(sendResponse).catch(sendResponse);
++    return true;
++  }
+ });
+ 
+ // タブ更新時の処理
+@@ -94,3 +111,56 @@ chrome.tabs.onUpdated.addListener((_tabId, changeInfo, tab) => {
+ chrome.action.onClicked.addListener((tab) => {
+   console.log('Action button clicked on tab:', tab.url);
+ });
++
++// Google Drive API連携のテスト関数
++async function testGoogleDriveConnection(): Promise<{ success: boolean; message: string; details?: unknown }> {
++  try {
++    console.log('=== Google Drive API連携テスト開始 ===');
++    console.log('Manifest情報:', chrome.runtime.getManifest());
++    console.log('ブラウザ情報:', navigator.userAgent);
++    
++    // 1. 改善された認証テスト（過去の動作版の方式を採用）
++    console.log('1. 改善された認証テスト...');
++    try {
++      const testToken = await getGoogleAuthToken();
++      console.log('✅ 認証成功:', testToken ? '取得済み' : '失敗');
++    } catch (authError) {
++      console.error('❌ 認証失敗:', authError);
++      return {
++        success: false,
++        message: '認証が失敗しました',
++        details: {
++          authError: authError instanceof Error ? authError.message : String(authError)
++        }
++      };
++    }
++    
++    // 1. アプリフォルダの取得/作成テスト
++    console.log('1. アプリフォルダの取得/作成...');
++    const folderId = await ensureAppFolder();
++    console.log('✅ アプリフォルダ取得成功:', folderId);
++    
++    // 2. ファイル一覧の取得テスト
++    console.log('2. ファイル一覧の取得...');
++    const files = await listAllMemoFiles();
++    console.log('✅ ファイル一覧取得成功:', files.length, '件');
++    
++    console.log('=== Google Drive API連携テスト完了 ===');
++    
++    return {
++      success: true,
++      message: 'Google Drive API連携テスト成功',
++      details: {
++        folderId,
++        filesCount: files.length
++      }
++    };
++  } catch (error) {
++    console.error('❌ Google Drive API連携テスト失敗:', error);
++    return {
++      success: false,
++      message: 'Google Drive API連携テスト失敗',
++      details: error instanceof Error ? error.message : String(error)
++    };
++  }
++}
+diff --git a/src/content-dev.tsx b/src/content-dev.tsx
+new file mode 100644
+index 0000000..6edc88b
+--- /dev/null
++++ b/src/content-dev.tsx
+@@ -0,0 +1,245 @@
++import { useState } from 'react';
++import { createRoot } from 'react-dom/client';
++
++import { debugDriveAPI, testDetailedFileList } from './utils/driveAPITest';
++import { clearAuthToken } from './utils/oauth';
++
++/**
++ * 開発・テスト専用のContent Script
++ * 本番環境では読み込まれない
++ */
++
++// カウントコンポーネント（テスト機能付き）
++function CountComponent() {
++  const [count, setCount] = useState(0);
++  
++  const handleIncrement = () => {
++    setCount(count + 1);
++  };
++
++  const handleTestFiles = async() => {
++    await testDetailedFileList();
++  };
++
++  const handleClearAuth = async() => {
++    await clearAuthToken();
++    // Chrome拡張のキャッシュもクリア
++    if (chrome?.identity?.clearAllCachedAuthTokens) {
++      chrome.identity.clearAllCachedAuthTokens(() => {
++        console.log('全認証キャッシュをクリアしました');
++        console.log('認証キャッシュをクリアしました。次回のテストで新しい権限で認証されます。');
++      });
++    }
++  };
++
++  const handleDebugAPI = async() => {
++    await debugDriveAPI();
++  };
++  
++  return (
++    <div
++      style={{
++        position: 'fixed',
++        top: '10px',
++        right: '10px',
++        zIndex: '10000',
++        display: 'flex',
++        flexDirection: 'column',
++        gap: '4px'
++      }}
++    >
++      <div
++        style={{
++          background: '#007bff',
++          color: 'white',
++          padding: '8px',
++          cursor: 'pointer'
++        }}
++        onClick={handleIncrement}
++      >
++        Count: {count}
++      </div>
++      <div
++        style={{
++          background: '#28a745',
++          color: 'white',
++          padding: '8px',
++          cursor: 'pointer',
++          fontSize: '12px',
++          textAlign: 'center'
++        }}
++        onClick={() => {
++          void handleTestFiles();
++        }}
++      >
++        Test All Files
++      </div>
++      <div
++        style={{
++          background: '#dc3545',
++          color: 'white',
++          padding: '8px',
++          cursor: 'pointer',
++          fontSize: '11px',
++          textAlign: 'center'
++        }}
++        onClick={() => {
++          void handleClearAuth();
++        }}
++      >
++        Clear Auth
++      </div>
++      <div
++        style={{
++          background: '#6f42c1',
++          color: 'white',
++          padding: '8px',
++          cursor: 'pointer',
++          fontSize: '11px',
++          textAlign: 'center'
++        }}
++        onClick={() => {
++          void handleDebugAPI();
++        }}
++      >
++        Debug API
++      </div>
++    </div>
++  );
++}
++
++// 開発用アプリコンポーネント
++function DevContentApp() {
++  return (
++    <div id="content-dev-app">
++      <CountComponent />
++    </div>
++  );
++}
++
++// 外部からのカウント更新（テスト用）
++function updateCount(newCount: number) {
++  // Reactの状態を更新するロジック
++  console.log('Updating count to:', newCount);
++}
++
++// テスト関数をグローバルに公開（Background Scriptにメッセージを送信）
++(window as any).testGoogleDriveConnection = async() => {
++  try {
++    console.log('testGoogleDriveConnection関数が呼び出されました');
++    const response = await chrome.runtime.sendMessage({
++      action: 'testGoogleDriveConnection'
++    });
++    console.log('テスト結果:', response);
++    return response;
++  } catch (error) {
++    console.error('テスト実行エラー:', error);
++    throw error;
++  }
++};
++
++// デバッグ用：関数の存在確認
++(window as any).checkTestFunction = () => {
++  console.log('testGoogleDriveConnection関数の存在確認:');
++  console.log('typeof testGoogleDriveConnection:', typeof (window as any).testGoogleDriveConnection);
++  console.log('window.testGoogleDriveConnection:', (window as any).testGoogleDriveConnection);
++  console.log('globalThis.testGoogleDriveConnection:', (globalThis as any).testGoogleDriveConnection);
++};
++
++// Google Drive APIテスト用ボタンを作成
++function createTestButton() {
++  // 既存のボタンがあれば削除
++  const existingButton = document.getElementById('google-drive-test-button');
++  if (existingButton) {
++    existingButton.remove();
++  }
++
++  const button = document.createElement('button');
++  button.id = 'google-drive-test-button';
++  button.textContent = 'Test Google Drive API';
++  button.style.cssText = `
++    position: fixed;
++    top: 20px;
++    right: 20px;
++    z-index: 10000;
++    padding: 10px 15px;
++    background: #4285f4;
++    color: white;
++    border: none;
++    border-radius: 5px;
++    cursor: pointer;
++    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
++    font-size: 14px;
++    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
++  `;
++
++  button.onclick = async() => {
++    button.textContent = 'Testing...';
++    button.disabled = true;
++    
++    try {
++      const response = await chrome.runtime.sendMessage({
++        action: 'testGoogleDriveConnection'
++      });
++      
++      console.log('Google Drive API テスト結果:', response);
++      
++      if (response.success) {
++        button.textContent = '✅ Test Success';
++        button.style.background = '#34a853';
++        setTimeout(() => {
++          button.textContent = 'Test Google Drive API';
++          button.style.background = '#4285f4';
++          button.disabled = false;
++        }, 3000);
++      } else {
++        button.textContent = '❌ Test Failed';
++        button.style.background = '#ea4335';
++        setTimeout(() => {
++          button.textContent = 'Test Google Drive API';
++          button.style.background = '#4285f4';
++          button.disabled = false;
++        }, 3000);
++      }
++    } catch (error) {
++      console.error('Google Drive APIテスト実行エラー:', error);
++      button.textContent = '❌ Error';
++      button.style.background = '#ea4335';
++      setTimeout(() => {
++        button.textContent = 'Test Google Drive API';
++        button.style.background = '#4285f4';
++        button.disabled = false;
++      }, 3000);
++    }
++  };
++
++  document.body.appendChild(button);
++  console.log('Google Drive APIテストボタンを作成しました');
++}
++
++// 開発用アプリの初期化
++function initializeDevApp() {
++  const existing = document.getElementById('content-dev-app');
++  if (existing) existing.remove();
++
++  const root = document.createElement('div');
++  root.id = 'dev-root';
++  document.body.appendChild(root);
++  
++  const reactRoot = createRoot(root);
++  reactRoot.render(<DevContentApp />);
++}
++
++// 開発用初期化
++initializeDevApp();
++createTestButton();
++
++// メッセージ受信（開発用）
++chrome.runtime.onMessage.addListener((message: { action: string; count?: number; selectionText?: string }) => {
++  if (message.action === 'updateCount' && message.count !== undefined) {
++    updateCount(message.count);
++  }
++  // 他のメッセージは本番用content scriptで処理
++});
++
++console.log('Development Content script ready with testing features');
+\ No newline at end of file
+diff --git a/src/content-production.tsx b/src/content-production.tsx
+new file mode 100644
+index 0000000..108bce2
+--- /dev/null
++++ b/src/content-production.tsx
+@@ -0,0 +1,104 @@
++import { createRoot } from 'react-dom/client';
++
++import { createMemo, createMemoDisplay, placeMemo } from './utils/memo';
++import { RestoreMemoPosition } from './utils/restoreMemoPosition';
++import { TextSelectionWatcher } from './utils/textSelection';
++
++// メインアプリコンポーネント（本番用 - テスト機能なし）
++function ContentApp() {
++  return (
++    <div id="content-app">
++      {/* 本番環境ではテストコンポーネントは表示しない */}
++    </div>
++  );
++}
++
++// テキスト選択監視の初期化
++let textSelectionWatcher: TextSelectionWatcher | null = null;
++
++function initializeTextSelectionWatcher() {
++  textSelectionWatcher = new TextSelectionWatcher((selection) => {
++    if (selection) {
++      console.log('Text selection changed:', selection.text);
++    } else {
++      console.log('Text selection cleared');
++    }
++  });
++}
++
++// メモ作成ハンドラー
++function handleCreateMemo(selectionText: string) {
++  console.log('Creating memo for text:', selectionText);
++  
++  if (textSelectionWatcher) {
++    const currentSelection = textSelectionWatcher.getCurrentSelection();
++    if (currentSelection) {
++      console.log('Memo creation initiated with selection info:', {
++        text: currentSelection.text,
++        position: {
++          x: currentSelection.boundingRect.x,
++          y: currentSelection.boundingRect.y
++        }
++      });
++
++      try {
++        // 1. メモを作成（位置情報なし）
++        const memo = createMemo('新しいメモ', selectionText);
++        
++        // 2. 復元アルゴリズムで位置を特定
++        const position = RestoreMemoPosition.findRestoredInfo(currentSelection);
++        if (position) {
++          const restoreInfo = RestoreMemoPosition.createRestoreInfo(position, currentSelection);
++          const success = RestoreMemoPosition.restorePosition(restoreInfo);
++          console.log('復元結果:', { success, restoreInfo });
++          
++          // 3. メモを特定位置に配置
++          if (success && restoreInfo) {
++            const memoPosition = placeMemo(memo.id, restoreInfo);
++            // 4. メモ表示UIを作成
++            createMemoDisplay(memo, memoPosition);
++          }
++        } else {
++          console.log('復元位置が見つかりませんでした');
++          // 現在の選択位置にメモを配置
++          const memoPosition = placeMemo(memo.id, currentSelection);
++          createMemoDisplay(memo, memoPosition);
++        }
++      } catch (error) {
++        console.error('メモ作成中にエラーが発生:', error);
++        // エラー時はメモのみ作成（位置指定なし）
++        const memo = createMemo('新しいメモ', selectionText);
++        createMemoDisplay(memo);
++      }
++    } else {
++      console.warn('No current selection available for memo creation');
++    }
++  }
++}
++
++// アプリの初期化（本番用）
++function initializeApp() {
++  const existing = document.getElementById('content-app');
++  if (existing) existing.remove();
++
++  const root = document.createElement('div');
++  root.id = 'root';
++  document.body.appendChild(root);
++  
++  const reactRoot = createRoot(root);
++  reactRoot.render(<ContentApp />);
++}
++
++// 本番用初期化
++initializeApp();
++initializeTextSelectionWatcher();
++
++// メッセージ受信（本番機能のみ）
++chrome.runtime.onMessage.addListener((message: { action: string; count?: number; selectionText?: string }) => {
++  if (message.action === 'createMemo' && message.selectionText) {
++    handleCreateMemo(message.selectionText);
++  }
++  // カウント更新機能は本番では不要のため削除
++});
++
++console.log('Content script ready with text selection monitoring (Production Mode)');
+diff --git a/src/content.tsx b/src/content.tsx
+index e26c43a..641a39c 100644
+--- a/src/content.tsx
++++ b/src/content.tsx
+@@ -1,139 +1,27 @@
+-import { useState } from 'react';
+-import { createRoot } from 'react-dom/client';
+-import { createMemo, createMemoDisplay, placeMemo } from './utils/memo';
+-import { RestoreMemoPosition } from './utils/restoreMemoPosition';
+-import { TextSelectionWatcher } from './utils/textSelection';
+-
+-// debugger;
+-
+-// カウントコンポーネント
+-function CountComponent() {
+-  const [count, setCount] = useState(0);
+-  
+-  const handleIncrement = () => {
+-    setCount(count + 1);
+-  };
+-  return (
+-    <div
+-      style={{
+-        position: 'fixed',
+-        top: '10px',
+-        right: '10px',
+-        background: '#007bff',
+-        color: 'white',
+-        padding: '8px',
+-        cursor: 'pointer',
+-        zIndex: '10000'
+-      }}
+-      onClick={handleIncrement}
+-    >
+-      Count: {count}
+-    </div>
+-  );
+-}
+-
+-// メインアプリコンポーネント
+-function ContentApp() {
+-  return (
+-    <div id="content-app">
+-      <CountComponent />
+-    </div>
+-  );
+-}
+-
+-// テキスト選択監視の初期化
+-let textSelectionWatcher: TextSelectionWatcher | null = null;
+-
+-function initializeTextSelectionWatcher() {
+-  textSelectionWatcher = new TextSelectionWatcher((selection) => {
+-    if (selection) {
+-      console.log('Text selection changed:', selection.text);
+-    } else {
+-      console.log('Text selection cleared');
+-    }
++/**
++ * Content Script メインファイル
++ * 環境変数により本番用/開発用機能を切り替え
++ */
++
++// 環境判定
++const isDevelopment = import.meta.env.DEV || import.meta.env.VITE_DEV_MODE === 'true';
++
++console.log('Content script loading...', { isDevelopment });
++
++if (isDevelopment) {
++  // 開発環境：テスト機能付きのContent Scriptを読み込み
++  console.log('Loading development content script with test features...');
++  import('./content-dev').then(() => {
++    console.log('✅ Development content script loaded');
++  }).catch(error => {
++    console.error('❌ Failed to load development content script:', error);
++  });
++} else {
++  // 本番環境：本番用のContent Scriptを読み込み
++  console.log('Loading production content script...');
++  import('./content-production').then(() => {
++    console.log('✅ Production content script loaded');
++  }).catch(error => {
++    console.error('❌ Failed to load production content script:', error);
+   });
+ }
+-
+-// メモ作成ハンドラー
+-function handleCreateMemo(selectionText: string) {
+-  console.log('Creating memo for text:', selectionText);
+-  
+-  if (textSelectionWatcher) {
+-    const currentSelection = textSelectionWatcher.getCurrentSelection();
+-    if (currentSelection) {
+-      console.log('Memo creation initiated with selection info:', {
+-        text: currentSelection.text,
+-        position: {
+-          x: currentSelection.boundingRect.x,
+-          y: currentSelection.boundingRect.y
+-        }
+-      });
+-
+-      try {
+-        // 1. メモを作成（位置情報なし）
+-        const memo = createMemo('新しいメモ', selectionText);
+-        
+-        // 2. 復元アルゴリズムで位置を特定
+-        const position = RestoreMemoPosition.findRestoredInfo(currentSelection);
+-        if (position) {
+-          const restoreInfo = RestoreMemoPosition.createRestoreInfo(position, currentSelection);
+-          const success = RestoreMemoPosition.restorePosition(restoreInfo);
+-          console.log('復元結果:', { success, restoreInfo });
+-          
+-          // 3. メモを特定位置に配置
+-          if (success && restoreInfo) {
+-            const memoPosition = placeMemo(memo.id, restoreInfo);
+-            // 4. メモ表示UIを作成
+-            createMemoDisplay(memo, memoPosition);
+-          }
+-        } else {
+-          console.log('復元位置が見つかりませんでした');
+-          // 現在の選択位置にメモを配置
+-          const memoPosition = placeMemo(memo.id, currentSelection);
+-          createMemoDisplay(memo, memoPosition);
+-        }
+-      } catch (error) {
+-        console.error('メモ作成中にエラーが発生:', error);
+-        // エラー時はメモのみ作成（位置指定なし）
+-        const memo = createMemo('新しいメモ', selectionText);
+-        createMemoDisplay(memo);
+-      }
+-    } else {
+-      console.warn('No current selection available for memo creation');
+-    }
+-  }
+-}
+-
+-// アプリの初期化
+-function initializeApp() {
+-  const existing = document.getElementById('content-app');
+-  if (existing) existing.remove();
+-
+-  const root = document.createElement('div');
+-  root.id = 'root';
+-  document.body.appendChild(root);
+-  
+-  const reactRoot = createRoot(root);
+-  reactRoot.render(<ContentApp />);
+-}
+-
+-// 外部からのカウント更新
+-function updateCount(newCount: number) {
+-  // Reactの状態を更新するロジック
+-  console.log('Updating count to:', newCount);
+-}
+-
+-// 初期化
+-initializeApp();
+-initializeTextSelectionWatcher();
+-
+-// メッセージ受信
+-chrome.runtime.onMessage.addListener((message: { action: string; count?: number; selectionText?: string }) => {
+-  if (message.action === 'updateCount' && message.count !== undefined) {
+-    updateCount(message.count);
+-  } else if (message.action === 'createMemo' && message.selectionText) {
+-    handleCreateMemo(message.selectionText);
+-  }
+-});
+-
+-console.log('Content script ready with text selection monitoring');
+diff --git a/src/types/memo.ts b/src/types/memo.ts
+index 501db9c..25caf2c 100644
+--- a/src/types/memo.ts
++++ b/src/types/memo.ts
+@@ -25,8 +25,13 @@ export interface MemoData {
+   tags: string[];
+   color: string;
+   isVisible: boolean;
++  // 保存機能用の拡張
++  driveFileId?: string;  // Google DriveファイルID
++  syncStatus: 'synced' | 'pending' | 'error';
++  lastSyncAt?: number;
+ }
+ 
++
+ // メモ位置情報（分離後）
+ export interface MemoPosition {
+   id: string;
+diff --git a/src/utils/driveAPITest.ts b/src/utils/driveAPITest.ts
+new file mode 100644
+index 0000000..4b84d79
+--- /dev/null
++++ b/src/utils/driveAPITest.ts
+@@ -0,0 +1,334 @@
++import { ensureAppFolder, listAllMemoFiles } from './memoStorage';
++import { getGoogleAuthToken } from './oauth';
++
++/**
++ * 統合されたGoogle Drive API テスト・デバッグユーティリティ
++ * 
++ * 機能:
++ * - 基本的なAPI接続テスト
++ * - ファイル一覧取得（基本・詳細・全ファイル）
++ * - アプリフォルダー管理テスト
++ * - 権限・スコープ確認
++ * - デバッグ用詳細情報出力
++ */
++
++// ================================================================================
++// メイン関数群
++// ================================================================================
++
++/**
++ * 基本的なGoogle Drive API接続テスト
++ */
++export async function testBasicConnection(): Promise<void> {
++  try {
++    console.log('=== Google Drive API基本接続テスト開始 ===');
++    
++    // 1. アプリフォルダの取得/作成テスト
++    console.log('1. アプリフォルダの取得/作成...');
++    const folderId = await ensureAppFolder();
++    console.log('✅ アプリフォルダ取得成功:', folderId);
++    
++    // 2. ファイル一覧の取得テスト
++    console.log('2. ファイル一覧の取得...');
++    const files = await listAllMemoFiles();
++    console.log('✅ ファイル一覧取得成功:', files.length, '件');
++    
++    console.log('=== 基本接続テスト完了 ===');
++  } catch (error) {
++    console.error('❌ 基本接続テスト失敗:', error);
++    throw error;
++  }
++}
++
++/**
++ * 詳細なGoogle Drive API デバッグ
++ */
++export async function debugDriveAPI(): Promise<void> {
++  try {
++    console.log('=== Google Drive API詳細デバッグ開始 ===');
++    
++    const token = await getGoogleAuthToken();
++    console.log('✅ 認証トークン取得成功');
++    
++    // 1. 基本的なファイル一覧（フィルターなし）
++    console.log('\n🔍 1. 基本ファイル一覧（制限なし）');
++    await testBasicFileList(token);
++    
++    // 2. Chrome Memo Extension フォルダーを特定
++    console.log('\n🔍 2. Chrome Memo Extension フォルダー検索');
++    const folderId = await findChromeMemoFolder(token);
++    
++    if (folderId) {
++      // 3. フォルダー内のファイルを直接検索
++      console.log('\n🔍 3. フォルダー内ファイルの直接検索');
++      await testFolderContents(token, folderId);
++    }
++    
++    // 4. 権限とスコープの確認
++    console.log('\n🔍 4. 現在の権限範囲確認');
++    await testPermissions(token);
++    
++    console.log('\n=== デバッグ完了 ===');
++    
++  } catch (error) {
++    console.error('❌ デバッグエラー:', error);
++    console.log(`デバッグエラー: ${error instanceof Error ? error.message : String(error)}`);
++  }
++}
++
++/**
++ * ユーザーの全Google Driveファイル詳細一覧を取得
++ * ※広範囲なアクセス権限が必要
++ */
++export async function testDetailedFileList(): Promise<void> {
++  try {
++    console.log('=== 詳細ファイル一覧テスト開始 ===');
++    console.log('⚠️ 注意: このテストには広範囲のDriveアクセス権限が必要です');
++    
++    const token = await getGoogleAuthToken();
++    console.log('✅ 認証トークン取得成功');
++    
++    // 詳細情報含むファイル一覧を取得
++    const response = await fetch('https://www.googleapis.com/drive/v3/files?pageSize=100&includeItemsFromAllDrives=true&supportsAllDrives=true&q=trashed=false&fields=files(id,name,mimeType,createdTime,modifiedTime,size,parents,webViewLink)', {
++      headers: {
++        'Authorization': `Bearer ${token}`,
++        'Content-Type': 'application/json'
++      }
++    });
++    
++    if (!response.ok) {
++      const errorText = await response.text();
++      throw new Error(`API Error: ${response.status} ${response.statusText} - ${errorText}`);
++    }
++    
++    const data = await response.json();
++    console.log('✅ ファイル一覧取得成功');
++    
++    if (data.files && data.files.length > 0) {
++      console.log(`📁 詳細ファイル一覧 (${data.files.length}件):`);
++      
++      // フォルダー構造のマップを作成
++      const folderMap = new Map();
++      data.files.forEach((file: any) => {
++        if (file.mimeType === 'application/vnd.google-apps.folder') {
++          folderMap.set(file.id, file.name);
++        }
++      });
++      
++      // フォルダー別にファイルを分類
++      const rootFiles: any[] = [];
++      const folderFiles = new Map();
++      
++      data.files.forEach((file: any) => {
++        if (!file.parents || file.parents.length === 0) {
++          rootFiles.push(file);
++        } else {
++          const parentId = file.parents[0];
++          if (!folderFiles.has(parentId)) {
++            folderFiles.set(parentId, []);
++          }
++          folderFiles.get(parentId).push(file);
++        }
++      });
++      
++      // ルートレベルのファイルを表示
++      console.log('\n📂 ルートレベルのファイル:');
++      displayFileList(rootFiles);
++      
++      // フォルダー内のファイルを表示
++      folderMap.forEach((folderName, folderId) => {
++        const files = folderFiles.get(folderId);
++        if (files && files.length > 0) {
++          console.log(`\n📁 フォルダー "${folderName}" 内のファイル:`);
++          displayFileList(files);
++        }
++      });
++      
++      // サマリー表示
++      const summary = generateSummary(data.files);
++      console.log('\n📊 サマリー:', summary);
++    } else {
++      console.log('📭 ファイルが見つかりませんでした');
++    }
++    
++    console.log('=== 詳細ファイル一覧テスト完了 ===');
++  } catch (error) {
++    console.error('❌ 詳細ファイル一覧テスト失敗:', error);
++    console.log(`エラー: ${error instanceof Error ? error.message : String(error)}\n\n現在のスコープでは全ファイルアクセスができない可能性があります。`);
++  }
++}
++
++/**
++ * 全ファイル一覧の簡易版（アラート表示付き）
++ * ※デバッグ用
++ */
++export async function testAllFilesList(): Promise<void> {
++  try {
++    console.log('=== 全ファイル一覧（簡易版）テスト開始 ===');
++    
++    const token = await getGoogleAuthToken();
++    console.log('✅ 認証トークン取得成功');
++    
++    // 全ファイルを取得（制限あり）
++    const response = await fetch('https://www.googleapis.com/drive/v3/files?pageSize=20&fields=files(id,name,mimeType,createdTime,parents)', {
++      headers: {
++        'Authorization': `Bearer ${token}`,
++        'Content-Type': 'application/json'
++      }
++    });
++    
++    if (!response.ok) {
++      const errorText = await response.text();
++      throw new Error(`API Error: ${response.status} ${response.statusText} - ${errorText}`);
++    }
++    
++    const data = await response.json();
++    console.log('✅ ファイル一覧取得成功');
++    
++    if (data.files && data.files.length > 0) {
++      console.log('📁 ユーザーの全Google Driveファイル一覧:');
++      data.files.forEach((file: any, index: number) => {
++        const isFolder = file.mimeType === 'application/vnd.google-apps.folder';
++        const emoji = isFolder ? '📁' : '📄';
++        console.log(`${index + 1}. ${emoji} ${file.name} (${file.mimeType})`);
++      });
++      
++      // ファイル名一覧のサマリー
++      const fileNames = data.files.map((file: any) => {
++        const isFolder = file.mimeType === 'application/vnd.google-apps.folder';
++        const emoji = isFolder ? '📁' : '📄';
++        return `${emoji} ${file.name}`;
++      }).join('\n');
++      
++      console.log(`ユーザーの全Google Driveファイル (${data.files.length}件):\n\n${fileNames}`);
++    } else {
++      console.log('📭 ファイルが見つかりませんでした');
++    }
++    
++    console.log('=== 全ファイル一覧テスト完了 ===');
++  } catch (error) {
++    console.error('❌ 全ファイル一覧テスト失敗:', error);
++    console.log(`エラー: ${error instanceof Error ? error.message : String(error)}`);
++  }
++}
++
++// ================================================================================
++// ヘルパー関数群
++// ================================================================================
++
++async function testBasicFileList(token: string) {
++  const response = await fetch('https://www.googleapis.com/drive/v3/files?pageSize=20&fields=files(id,name,mimeType,parents)', {
++    headers: {
++      'Authorization': `Bearer ${token}`,
++      'Content-Type': 'application/json'
++    }
++  });
++  
++  const data = await response.json();
++  console.log(`📋 基本一覧: ${data.files?.length || 0}件`);
++  
++  if (data.files) {
++    data.files.forEach((file: any, index: number) => {
++      const emoji = file.mimeType === 'application/vnd.google-apps.folder' ? '📁' : '📄';
++      const parentInfo = file.parents ? ` (親: ${file.parents[0]})` : ' (ルート)';
++      console.log(`  ${index + 1}. ${emoji} ${file.name}${parentInfo}`);
++    });
++  }
++}
++
++async function findChromeMemoFolder(token: string): Promise<string | null> {
++  const response = await fetch(`https://www.googleapis.com/drive/v3/files?q=name='Chrome Memo Extension' and mimeType='application/vnd.google-apps.folder'&fields=files(id,name)`, {
++    headers: {
++      'Authorization': `Bearer ${token}`,
++      'Content-Type': 'application/json'
++    }
++  });
++  
++  const data = await response.json();
++  if (data.files && data.files.length > 0) {
++    const folder = data.files[0];
++    console.log(`📁 フォルダー発見: ${folder.name} (ID: ${folder.id})`);
++    return folder.id;
++  } else {
++    console.log('📭 Chrome Memo Extension フォルダーが見つかりませんでした');
++    return null;
++  }
++}
++
++async function testFolderContents(token: string, folderId: string) {
++  const response = await fetch(`https://www.googleapis.com/drive/v3/files?q='${folderId}' in parents&fields=files(id,name,mimeType,size,createdTime)`, {
++    headers: {
++      'Authorization': `Bearer ${token}`,
++      'Content-Type': 'application/json'
++    }
++  });
++  
++  const data = await response.json();
++  console.log(`📂 フォルダー内ファイル: ${data.files?.length || 0}件`);
++  
++  if (data.files && data.files.length > 0) {
++    data.files.forEach((file: any, index: number) => {
++      const emoji = file.mimeType === 'application/vnd.google-apps.folder' ? '📁' : '📄';
++      const size = file.size ? ` (${Math.round(file.size / 1024)}KB)` : '';
++      console.log(`  ${index + 1}. ${emoji} ${file.name}${size}`);
++    });
++  }
++}
++
++async function testPermissions(token: string) {
++  try {
++    const response = await fetch('https://www.googleapis.com/drive/v3/about?fields=user,storageQuota', {
++      headers: {
++        'Authorization': `Bearer ${token}`,
++        'Content-Type': 'application/json'
++      }
++    });
++    
++    const data = await response.json();
++    console.log('👤 ユーザー情報:', data.user?.displayName || 'Unknown');
++    console.log('💾 ストレージ情報:', data.storageQuota || 'No quota info');
++  } catch (error) {
++    console.log('⚠️ 権限情報の取得に失敗:', error);
++  }
++}
++
++function displayFileList(files: any[]) {
++  files.forEach((file: any, index: number) => {
++    const isFolder = file.mimeType === 'application/vnd.google-apps.folder';
++    const emoji = isFolder ? '📁' : '📄';
++    const size = file.size ? ` (${formatFileSize(file.size)})` : '';
++    const date = file.createdTime ? ` - ${new Date(file.createdTime).toLocaleDateString()}` : '';
++    console.log(`  ${index + 1}. ${emoji} ${file.name}${size}${date}`);
++  });
++}
++
++function formatFileSize(bytes: string): string {
++  const size = parseInt(bytes);
++  if (size < 1024) return `${size}B`;
++  if (size < 1024 * 1024) return `${Math.round(size / 1024)}KB`;
++  return `${Math.round(size / (1024 * 1024))}MB`;
++}
++
++function generateSummary(files: any[]): string {
++  const totalFiles = files.length;
++  const folders = files.filter(f => f.mimeType === 'application/vnd.google-apps.folder').length;
++  const regularFiles = totalFiles - folders;
++  
++  return `総ファイル数: ${totalFiles}件, フォルダー: ${folders}件, ファイル: ${regularFiles}件`;
++}
++
++// ================================================================================
++// グローバル関数の登録（デバッグ用）
++// ================================================================================
++
++if (typeof window !== 'undefined') {
++  (window as any).testBasicConnection = testBasicConnection;
++  (window as any).debugDriveAPI = debugDriveAPI;
++  (window as any).testDetailedFileList = testDetailedFileList;
++  (window as any).testAllFilesList = testAllFilesList;
++  
++  // 後方互換性のため
++  (window as any).testGoogleDriveConnection = testBasicConnection;
++  (window as any).testListDriveFiles = testDetailedFileList;
++  (window as any).testListAllDriveFiles = testAllFilesList;
++}
+\ No newline at end of file
+diff --git a/src/utils/memo.tsx b/src/utils/memo.tsx
+index 90d7b1c..52a9fe6 100644
+--- a/src/utils/memo.tsx
++++ b/src/utils/memo.tsx
+@@ -130,6 +130,7 @@ export function createMemo(content: string, selectedText?: string): MemoData {
+     tags: [],
+     color: '#fff',
+     isVisible: true,
++    syncStatus: 'pending',
+   };
+   
+   console.log('メモを作成しました:', memo);
+diff --git a/src/utils/memoStorage.ts b/src/utils/memoStorage.ts
+new file mode 100644
+index 0000000..cff928e
+--- /dev/null
++++ b/src/utils/memoStorage.ts
+@@ -0,0 +1,222 @@
++import type { MemoData, MemoPosition } from '../types/memo';
++import { getGoogleAuthToken } from './oauth';
++
++// Google Drive API設定
++const GOOGLE_DRIVE_API_BASE = 'https://www.googleapis.com/drive/v3';
++const GOOGLE_UPLOAD_API_BASE = 'https://www.googleapis.com/upload/drive/v3';
++
++// アプリケーション専用フォルダ名
++const APP_FOLDER_NAME = 'Chrome Memo Extension';
++
++// エラーハンドリング用の型定義
++interface GoogleDriveError {
++  error: {
++    code: number;
++    message: string;
++    status: string;
++  };
++}
++
++
++
++// Google Drive APIリクエストの基本関数
++async function makeDriveRequest(
++  url: string,
++  options: RequestInit = {}
++): Promise<any> {
++  const token = await getGoogleAuthToken();
++  
++  const response = await fetch(url, {
++    ...options,
++    headers: {
++      'Authorization': `Bearer ${token}`,
++      'Content-Type': 'application/json',
++      ...options.headers,
++    },
++  });
++
++  if (!response.ok) {
++    const error: GoogleDriveError = await response.json();
++    throw new Error(`Google Drive API Error: ${error.error.message}`);
++  }
++
++  return response.json();
++}
++
++// アプリケーション専用フォルダの取得または作成
++export async function ensureAppFolder(): Promise<string> {
++  try {
++    // 既存のフォルダを検索
++    const searchUrl = `${GOOGLE_DRIVE_API_BASE}/files?q=name='${APP_FOLDER_NAME}' and mimeType='application/vnd.google-apps.folder' and trashed=false`;
++    const searchResult = await makeDriveRequest(searchUrl);
++
++    if (searchResult.files && searchResult.files.length > 0) {
++      console.log('既存のアプリフォルダを発見:', searchResult.files[0].id);
++      return searchResult.files[0].id;
++    }
++
++    // フォルダが存在しない場合は作成
++    const createFolderUrl = `${GOOGLE_DRIVE_API_BASE}/files`;
++    const folderData = {
++      name: APP_FOLDER_NAME,
++      mimeType: 'application/vnd.google-apps.folder',
++    };
++
++    const newFolder = await makeDriveRequest(createFolderUrl, {
++      method: 'POST',
++      body: JSON.stringify(folderData),
++    });
++
++    console.log('新しいアプリフォルダを作成:', newFolder.id);
++    return newFolder.id;
++  } catch (error) {
++    console.error('アプリフォルダの取得/作成に失敗:', error);
++    throw error;
++  }
++}
++
++// メモファイルの保存
++export async function saveMemoFile(
++  memo: MemoData,
++  position?: MemoPosition
++): Promise<string> {
++  try {
++    const folderId = await ensureAppFolder();
++    
++    // 保存用データの作成（一時的な形式）
++    const fileData = {
++      memo: memo,
++      position: position, // 後でselectionに変更予定
++    };
++
++    const fileName = `memo_${memo.id}.json`;
++    
++    // 既存ファイルを検索
++    const searchUrl = `${GOOGLE_DRIVE_API_BASE}/files?q=name='${fileName}' and '${folderId}' in parents and trashed=false`;
++    const searchResult = await makeDriveRequest(searchUrl);
++
++    let fileId: string;
++
++    if (searchResult.files && searchResult.files.length > 0) {
++      // 既存ファイルを更新
++      fileId = searchResult.files[0].id;
++      const updateUrl = `${GOOGLE_UPLOAD_API_BASE}/files/${fileId}?uploadType=media`;
++      
++      await makeDriveRequest(updateUrl, {
++        method: 'PATCH',
++        headers: {
++          'Content-Type': 'application/json',
++        },
++        body: JSON.stringify(fileData),
++      });
++
++      console.log('メモファイルを更新:', fileId);
++    } else {
++      // 新規ファイルを作成
++      const createUrl = `${GOOGLE_UPLOAD_API_BASE}/files?uploadType=multipart`;
++      
++      const boundary = '----WebKitFormBoundary' + Math.random().toString(36).substring(2);
++      const multipartBody = [
++        `--${boundary}`,
++        'Content-Type: application/json; charset=UTF-8',
++        '',
++        JSON.stringify({
++          name: fileName,
++          parents: [folderId],
++        }),
++        `--${boundary}`,
++        'Content-Type: application/json',
++        '',
++        JSON.stringify(fileData),
++        `--${boundary}--`,
++      ].join('\r\n');
++
++      const newFile = await makeDriveRequest(createUrl, {
++        method: 'POST',
++        headers: {
++          'Content-Type': `multipart/related; boundary=${boundary}`,
++        },
++        body: multipartBody,
++      });
++
++      fileId = newFile.id;
++      console.log('新しいメモファイルを作成:', fileId);
++    }
++
++    return fileId;
++  } catch (error) {
++    console.error('メモファイルの保存に失敗:', error);
++    throw error;
++  }
++}
++
++// メモファイルの取得
++export async function loadMemoFile(fileId: string): Promise<{ memo: MemoData; position?: MemoPosition }> {
++  try {
++    const url = `${GOOGLE_DRIVE_API_BASE}/files/${fileId}?alt=media`;
++    const fileData = await makeDriveRequest(url);
++    
++    console.log('メモファイルを取得:', fileId);
++    return fileData;
++  } catch (error) {
++    console.error('メモファイルの取得に失敗:', error);
++    throw error;
++  }
++}
++
++// メモファイルの削除
++export async function deleteMemoFile(fileId: string): Promise<void> {
++  try {
++    const url = `${GOOGLE_DRIVE_API_BASE}/files/${fileId}`;
++    await makeDriveRequest(url, {
++      method: 'DELETE',
++    });
++    
++    console.log('メモファイルを削除:', fileId);
++  } catch (error) {
++    console.error('メモファイルの削除に失敗:', error);
++    throw error;
++  }
++}
++
++// アプリフォルダ内の全メモファイルを取得
++export async function listAllMemoFiles(): Promise<Array<{ id: string; name: string; modifiedTime: string }>> {
++  try {
++    const folderId = await ensureAppFolder();
++    const url = `${GOOGLE_DRIVE_API_BASE}/files?q='${folderId}' in parents and name contains 'memo_' and trashed=false&fields=files(id,name,modifiedTime)`;
++    
++    const result = await makeDriveRequest(url);
++    
++    console.log('メモファイル一覧を取得:', result.files.length, '件');
++    return result.files || [];
++  } catch (error) {
++    console.error('メモファイル一覧の取得に失敗:', error);
++    throw error;
++  }
++}
++
++// エラーハンドリングと再試行処理
++export async function retryOperation<T>(
++  operation: () => Promise<T>,
++  maxRetries: number = 3,
++  delay: number = 1000
++): Promise<T> {
++  let lastError: Error;
++  
++  for (let attempt = 1; attempt <= maxRetries; attempt++) {
++    try {
++      return await operation();
++    } catch (error) {
++      lastError = error as Error;
++      console.warn(`操作が失敗しました (試行 ${attempt}/${maxRetries}):`, error);
++      
++      if (attempt < maxRetries) {
++        // 指数バックオフ
++        const waitTime = delay * Math.pow(2, attempt - 1);
++        await new Promise(resolve => setTimeout(resolve, waitTime));
++      }
++    }
++  }
++  
++  throw lastError!;
++} 
+\ No newline at end of file
+diff --git a/src/utils/oauth.ts b/src/utils/oauth.ts
+new file mode 100644
+index 0000000..90c3697
+--- /dev/null
++++ b/src/utils/oauth.ts
+@@ -0,0 +1,240 @@
++/**
++ * Google Drive APIを使用するための認証関連の機能を提供するモジュール
++ * 過去の動作していたプロジェクトのoauth.jsを参考に実装
++ */
++
++// デバッグモード設定
++const DEBUG = true;
++
++// トークンの保存と取得のためのキー
++const TOKEN_STORAGE_KEY = 'google_drive_token';
++const TOKEN_EXPIRY_KEY = 'google_drive_token_expiry';
++
++// トークンの有効期限（秒） - 実際の有効期限より少し短く設定
++const TOKEN_EXPIRY_BUFFER = 300; // 5分のバッファ
++
++/**
++ * デバッグログ出力
++ */
++function log(message: string, data?: any) {
++  if (DEBUG) {
++    console.log(`[OAuth] ${message}`, data || '');
++  }
++}
++
++/**
++ * トークンと有効期限を保存する関数
++ * @param token - 保存するトークン
++ * @param isTest - テストモードかどうか
++ */
++function saveToken(token: string, isTest = false): void {
++  const expiryTime = Date.now() + ((isTest ? 600 : 3600) * 1000) - (TOKEN_EXPIRY_BUFFER * 1000);
++  chrome.storage.sync.set({
++    [TOKEN_STORAGE_KEY]: token,
++    [TOKEN_EXPIRY_KEY]: expiryTime
++  });
++  log('トークンを保存しました', {
++    expiryTime: new Date(expiryTime),
++    remainingTime: Math.floor((expiryTime - Date.now()) / 1000) + '秒',
++    isTestMode: isTest
++  });
++}
++
++/**
++ * トークンを削除する関数
++ */
++function removeToken(): Promise<void> {
++  return new Promise((resolve) => {
++    chrome.storage.sync.remove([TOKEN_STORAGE_KEY, TOKEN_EXPIRY_KEY], () => {
++      log('Token removed from chrome.storage.sync');
++      resolve();
++    });
++  });
++}
++
++/**
++ * 保存されたトークンを取得する関数
++ * @returns 有効なトークン、またはnull
++ */
++function getStoredToken(): Promise<string | null> {
++  return new Promise((resolve) => {
++    chrome.storage.sync.get([TOKEN_STORAGE_KEY, TOKEN_EXPIRY_KEY], (result) => {
++      const token = result[TOKEN_STORAGE_KEY];
++      const expiryTime = parseInt(result[TOKEN_EXPIRY_KEY] || '0');
++
++      if (!token || !expiryTime) {
++        log('保存されたトークンが見つかりません');
++        resolve(null);
++        return;
++      }
++
++      const remainingTime = Math.floor((expiryTime - Date.now()) / 1000 / 60);
++      log('トークンの状態:', {
++        hasToken: !!token,
++        expiryTime: new Date(expiryTime),
++        remainingTime: remainingTime + '分'
++      });
++
++      if (Date.now() < expiryTime) {
++        log('有効なトークンを使用します');
++        resolve(token);
++      } else {
++        log('トークンの有効期限が切れています');
++        removeToken().then(() => resolve(null));
++      }
++    });
++  });
++}
++
++/**
++ * 新しいトークンを取得する関数
++ * @param requireUserInteraction - ユーザー操作が必要かどうか
++ */
++function getNewToken(requireUserInteraction = false): Promise<string> {
++  return new Promise((resolve, reject) => {
++    log('トークン取得を開始', {
++      requireUserInteraction,
++      method: requireUserInteraction ? '対話的' : '非対話的'
++    });
++
++    // 方法1: chrome.identity.getAuthToken を試す
++    chrome.identity.getAuthToken({ 
++      interactive: requireUserInteraction
++    }, function(token) {
++      if (chrome.runtime.lastError) {
++        const error = chrome.runtime.lastError;
++        log('getAuthToken エラー:', {
++          message: error.message,
++          requireUserInteraction
++        });
++
++        if (requireUserInteraction) {
++          log('launchWebAuthFlow にフォールバック');
++          // 方法2: launchWebAuthFlow にフォールバック
++          authenticateWithWebFlow()
++            .then(token => {
++              saveToken(token);
++              resolve(token);
++            })
++            .catch(reject);
++        } else {
++          // 非対話的な取得が失敗した場合のエラーメッセージ
++          const errorMessage = `自動トークン更新に失敗しました: ${error.message}`;
++          log(errorMessage);
++          reject(new Error(errorMessage));
++        }
++        return;
++      }
++      
++      if (!token) {
++        reject(new Error('トークンが取得できませんでした'));
++        return;
++      }
++      
++      log('トークン取得成功', {
++        tokenLength: token.length,
++        method: requireUserInteraction ? '対話的' : '非対話的'
++      });
++      saveToken(token);
++      resolve(token);
++    });
++  });
++}
++
++/**
++ * WebFlowによる認証を行う関数
++ */
++function authenticateWithWebFlow(): Promise<string> {
++  return new Promise((resolve, reject) => {
++    const clientId = '1023026132594-oj46tsthi3f6hdff7m0kc05a5u8rumnk.apps.googleusercontent.com';
++    const redirectUri = chrome.identity.getRedirectURL();
++    log('Redirect URI:', redirectUri);
++    log('Using client ID:', clientId);
++    
++    const scope = [
++      'https://www.googleapis.com/auth/drive.file',
++      'https://www.googleapis.com/auth/drive.appdata',
++      'https://www.googleapis.com/auth/drive.appfolder'
++    ].join(' ');
++
++    const authUrl = `https://accounts.google.com/o/oauth2/auth` +
++      `?client_id=${clientId}` +
++      `&response_type=token` +
++      `&redirect_uri=${encodeURIComponent(redirectUri)}` +
++      `&scope=${encodeURIComponent(scope)}`;
++    
++    log('Attempting auth with URL:', authUrl);
++    
++    chrome.identity.launchWebAuthFlow(
++      {
++        url: authUrl,
++        interactive: true
++      },
++      function(redirectUrl) {
++        if (chrome.runtime.lastError) {
++          log('launchWebAuthFlow error:', chrome.runtime.lastError);
++          reject(chrome.runtime.lastError);
++          return;
++        }
++        
++        if (!redirectUrl) {
++          reject(new Error('リダイレクトURLが取得できませんでした'));
++          return;
++        }
++        
++        log('Got redirect URL:', redirectUrl);
++        
++        try {
++          const params = new URLSearchParams(new URL(redirectUrl).hash.substring(1));
++          const accessToken = params.get('access_token');
++          if (accessToken) {
++            log('Successfully extracted access token');
++            resolve(accessToken);
++          } else {
++            log('No access token found in redirect URL');
++            reject(new Error('Access token not found in redirect URL'));
++          }
++        } catch (e) {
++          log('Error parsing redirect URL:', e);
++          reject(e);
++        }
++      }
++    );
++  });
++}
++
++/**
++ * Google認証トークンを取得する関数（メイン関数）
++ */
++export async function getGoogleAuthToken(): Promise<string> {
++  log('認証トークン取得開始');
++
++  // 認証キャッシュをクリア
++  try {
++    await new Promise<void>((resolve) => {
++      chrome.identity.clearAllCachedAuthTokens(() => {
++        log('認証キャッシュをクリアしました');
++        resolve();
++      });
++    });
++  } catch (error) {
++    log('キャッシュクリアでエラー:', error);
++  }
++
++  const storedToken = await getStoredToken();
++  if (storedToken) {
++    log('保存されたトークンを使用');
++    return storedToken;
++  }
++
++  // 新しいトークンを取得（ユーザー操作が必要）
++  return await getNewToken(true);
++}
++
++/**
++ * 認証トークンをクリアする関数
++ */
++export async function clearAuthToken(): Promise<void> {
++  await removeToken();
++  log('認証トークンをクリアしました');
++}
+\ No newline at end of file
