@@ -10,6 +10,7 @@ export default defineConfig({
     webExtension({              // Chrome Extension用プラグイン
       manifest: 'public/manifest.json', // Chrome Extensionのマニフェストファイルのパス
       // browser: '/Applications/Brave Browser.app/Contents/MacOS/Brave Browser', // ブラウザのパス
+      disableAutoLaunch: true, // ブラウザ自動起動を無効化
     })
   ],
   
@@ -36,4 +37,4 @@ export default defineConfig({
       port: 24678
     }
   }
-})
+});
