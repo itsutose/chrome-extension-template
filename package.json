@@ -4,21 +4,38 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "//--- Development ---": "echo",
     "dev": "vite",
-    "lint": "eslint . --cache --cache-location .eslintcache",
-    "lint:fix": "eslint . --fix --cache --cache-location .eslintcache",
-    "preview": "vite preview",
+    "dev:auto": "npm run auto-reload",
+
+    "//--- Build ---": "echo",
     "build": "tsc -b && vite build",
     "build:clean": "rm -rf dist/* && tsc -b && vite build",
     "build:extension": "vite build --mode production",
+
+    "//--- Browser Control ---": "echo",
+    "brave:start": "scripts/brave-ctl.sh start",
+    "brave:start:debug": "scripts/brave-ctl.sh start-debug",
+    "brave:stop": "scripts/brave-ctl.sh stop",
+    "brave:reset": "scripts/brave-ctl.sh reset",
+
+    "//--- Browser Control (Deprecated)---": "echo",
     "start:brave": "./start-brave.sh",
     "start:brave:debug": "./start-brave-debug.sh",
     "stop:brave:debug": "./stop-brave-debug.sh",
     "reset:brave:debug": "./reset-brave-debug.sh",
-    "auto-reload": "node scripts/auto-reload.js",
-    "dev:auto": "npm run auto-reload",
+    
+    "//--- Lint ---": "echo",
+    "lint": "eslint . --cache --cache-location .eslintcache",
+    "lint:fix": "eslint . --fix --cache --cache-location .eslintcache",
+    "preview": "vite preview",
 
-    "echo": "pwd"
+    "//--- Test ---": "echo",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:integration": "jest --config jest.integration.config.js",
+    "test:integration:watch": "jest --config jest.integration.config.js --watch"
   },
   "dependencies": {
     "react": "^19.1.0",
