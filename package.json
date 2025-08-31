@@ -17,6 +17,7 @@
     "brave:stop": "scripts/brave-ctl.sh stop",
     "brave:reset": "scripts/brave-ctl.sh reset",
     "//--- Lint ---": "echo",
+    "fmt": "prettier --write . --log-level warn && eslint --fix .",
     "lint": "eslint . --cache --cache-location .eslintcache",
     "lint:fix": "eslint . --fix --cache --cache-location .eslintcache",
     "preview": "vite preview",
