@@ -13,6 +13,7 @@
 
 // ESLintの基本設定とプラグインのインポート
 import js from '@eslint/js'; // ESLintの推奨JavaScriptルール
+import prettierConfig from 'eslint-config-prettier'; // prettierとの競合を回避
 import reactHooks from 'eslint-plugin-react-hooks'; // React Hooks用のルール
 import reactRefresh from 'eslint-plugin-react-refresh'; // React Fast Refresh用のルール
 import { globalIgnores } from 'eslint/config'; // グローバル除外設定
@@ -56,202 +57,71 @@ export default tseslint.config([
    */
   {
     files: ['scripts/**/*.{js,jsx}'],
-    extends: [
-      js.configs.recommended,  // ESLintの推奨JavaScriptルール
-    ],
+    extends: [js.configs.recommended],
     languageOptions: {
-      ecmaVersion: 2020,  // ES2020の機能を使用可能
-      globals: {
-        ...globals.node,  // Node.jsのグローバル変数（process, __dirname等）
-        process: 'readonly',  // processオブジェクトを読み取り専用として定義
-      },
+      globals: { ...globals.node },
     },
     rules: {
-      // 開発用スクリプトではconsole文を許可（デバッグ用）
       'no-console': 'off',
-      'no-debugger': 'off',  // debugger文
-      
-      // 未使用変数を警告に変更（エラーではなく警告）
+      'no-debugger': 'off',
       'no-unused-vars': 'warn',
-      'no-undef': 'error',    // 未定義変数はエラー
-      
-      // 基本的なフォーマットルール
-      'no-multiple-empty-lines': ['error', { max: 2, maxEOF: 1, maxBOF: 0 }],  // 最大2行の空行まで許可
-      'eol-last': 'error',    // ファイル末尾に改行を要求
-      'no-trailing-spaces': 'off',  // 行末の空白を禁止
-      'no-mixed-spaces-and-tabs': 'off',  // スペースとタブの混在を禁止
-      
-      // 重複インポートを禁止
-      'no-duplicate-imports': 'error',
     },
   },
   
   /**
-   * 4. TypeScript/TSXファイルの設定
-   * src/ディレクトリ内のTypeScriptファイルに適用
-   * 最も厳格な設定（型チェック含む）
-   */
+     * 4. TypeScript/TSXファイルの設定 (src/**)
+     * - これがメインの設定
+     */
   {
     files: ['src/**/*.{ts,tsx}'],
     extends: [
-      js.configs.recommended,                    // ESLintの推奨JavaScriptルール
-      tseslint.configs.recommended,              // TypeScript ESLintの推奨ルール
-      tseslint.configs.recommendedTypeChecked,   // 型チェック付きの推奨ルール
-      reactHooks.configs['recommended-latest'],  // React Hooksの最新推奨ルール
-      reactRefresh.configs.vite,                 // Vite用のReact Fast Refreshルール
+      js.configs.recommended,
+      tseslint.configs.recommended,
+      tseslint.configs.recommendedTypeChecked,
+      reactHooks.configs['recommended-latest'],
     ],
     languageOptions: {
-      ecmaVersion: 2020,  // ES2020の機能を使用可能
       globals: {
-        ...globals.browser,  // ブラウザのグローバル変数（window, document等）
-        chrome: 'readonly',  // Chrome拡張機能APIを読み取り専用として定義
+        ...globals.browser,
+        chrome: 'readonly',
       },
       parserOptions: {
-        project: ['./tsconfig.app.json', './tsconfig.node.json'],  // TypeScript設定ファイル
-        tsconfigRootDir: import.meta.dirname,  // 設定ファイルのルートディレクトリ
+        project: ['./tsconfig.app.json', './tsconfig.node.json'],
+        tsconfigRootDir: import.meta.dirname,
       },
     },
+    plugins: {
+      'react-refresh': reactRefresh,
+    },
     rules: {
-      // TypeScript固有のルール
-      '@typescript-eslint/no-unused-vars': 'error',      // 未使用変数をエラー
-      '@typescript-eslint/no-explicit-any': 'warn',      // any型の使用を警告
-      '@typescript-eslint/no-non-null-assertion': 'warn', // !演算子の使用を警告
-      
+      // --- ここからが重要 ---
+      // Prettierに任せるフォーマット関連のルールは全て削除し、
+      // コードの品質に関するルールのみを残す。
+
       // React Fast Refreshルール
-      'react-refresh/only-export-components': 'warn',    // Fast refreshを警告に変更
+      'react-refresh/only-export-components': [
+        'warn',
+        { allowConstantExport: true },
+      ],
+
+      // TypeScript固有の品質ルール
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-non-null-assertion': 'warn',
       
-      // 一般的なエラーハンドリング
-      'no-debugger': 'off',    // debugger文を警告 (開発中は許可)
-      'no-console': 'off',      // console文を警告 (開発中は許可)
-      'no-alert': 'error',       // alert文をエラー
-      
-      // 変数宣言の推奨
-      'prefer-const': 'error',   // constの使用を推奨
-      'no-var': 'error',         // varの使用を禁止
-      'no-let': 'off',           // letの使用は許可
-      
-      // 基本的なフォーマットルール（緩和版）
-      'no-multiple-empty-lines': ['error', { max: 2, maxEOF: 1, maxBOF: 0 }],  // 最大2行の空行まで許可
-      'eol-last': 'error',       // ファイル末尾に改行を要求
-      'no-trailing-spaces': 'off',  // 行末の空白を許可
-      'no-mixed-spaces-and-tabs': 'off',  // スペースとタブの混在を許可
-      
-      // オブジェクト・配列のスペースルール
-      'object-curly-spacing': ['error', 'always'],  // オブジェクトリテラルの波括弧内にスペース
-      'array-bracket-spacing': ['error', 'never'],  // 配列リテラルの角括弧内にスペースなし
-      
-      // 演算子のスペースルール
-      'space-infix-ops': 'error',  // 演算子の前後にスペース
-      
-      // 追加の自動修正可能なルール
-      'comma-spacing': ['error', { before: false, after: true }],  // カンマの後のスペース
-      'key-spacing': ['error', { beforeColon: false, afterColon: true }],  // オブジェクトキーのスペース
-      'keyword-spacing': ['error', { before: true, after: true }],  // キーワードのスペース
-      'space-before-blocks': 'error',  // ブロックの前のスペース
-      'space-before-function-paren': ['error', 'never'],  // 関数名と括弧の間にスペースなし
-      'space-in-parens': ['error', 'never'],  // 括弧内のスペース
-      'space-unary-ops': ['error', { words: true, nonwords: false }],  // 単項演算子のスペース
-      'indent': ['error', 2],  // インデント（2スペース）
-      // 'quotes': ['error', 'single'],  // シングルクォート
-      'semi': ['error', 'always'],  // セミコロン
-      'comma-dangle': ['off', 'always-multiline'],  // マルチラインでの末尾カンマ
-      'no-multi-spaces': 'off',  // 複数のスペース
-      'no-irregular-whitespace': 'error',  // 不正な空白文字
-      
-      // インポート順序ルール（緩和版）
-      'sort-imports': ['warn', {
-        ignoreCase: true,           // 大文字小文字を区別
-        ignoreDeclarationSort: true, // インポート宣言の順序をチェック
-        ignoreMemberSort: true,     // メンバーの順序はチェック
-        memberSyntaxSortOrder: ['none', 'all', 'single', 'multiple'],  // メンバー構文の順序
-        allowSeparatedGroups: true,  // グループ間の分離を許可
-      }],
-      
-      // その他の一般的なルール
-      'no-duplicate-imports': 'error',      // 重複インポートを禁止
-      'no-unreachable': 'error',            // 到達不能コードをエラー
-      'no-unreachable-loop': 'error',       // 到達不能ループをエラー
+      // 一般的な品質・バグ防止ルール
+      'no-debugger': 'warn', // debugger文は警告
+      'no-console': ['warn', { allow: ['warn', 'error'] }], // console.logは警告
+      'prefer-const': 'error', // constの使用を推奨
+      'no-var': 'error', // varの使用を禁止
+      'no-unreachable': 'error', // 到達不能コードをエラー
     },
   },
+
   
   /**
-   * 5. アプリケーション用JavaScript/JSXファイルの設定
-   * src/とpublic/ディレクトリ内のJavaScriptファイルに適用
-   * TypeScriptファイルよりは緩いが、基本的な品質チェック
+   * 5. Prettierとの競合ルールを無効化する設定 (最重要)
+   * - この設定は必ず配列の最後に配置する
    */
-  {
-    files: ['src/**/*.{js,jsx}', 'public/**/*.{js,jsx}'],
-    extends: [
-      js.configs.recommended,                    // ESLintの推奨JavaScriptルール
-      reactHooks.configs['recommended-latest'],  // React Hooksの最新推奨ルール
-      reactRefresh.configs.vite,                 // Vite用のReact Fast Refreshルール
-    ],
-    languageOptions: {
-      ecmaVersion: 2020,  // ES2020の機能を使用可能
-      globals: {
-        ...globals.browser,  // ブラウザのグローバル変数（window, document等）
-        chrome: 'readonly',  // Chrome拡張機能APIを読み取り専用として定義
-        process: 'readonly', // processオブジェクトを読み取り専用として定義
-      },
-    },
-    rules: {
-      // JavaScript固有のルール
-      'no-unused-vars': 'error',  // 未使用変数をエラー
-      'no-undef': 'error',        // 未定義変数をエラー
-      
-      // React Fast Refreshルール
-      'react-refresh/only-export-components': 'warn',    // Fast refreshを警告に変更
-      
-      // 一般的なエラーハンドリング
-      'no-debugger': 'error',     // debugger文をエラー
-      'no-console': 'warn',       // console文を警告（開発中は許可）
-      'no-alert': 'error',        // alert文をエラー
-      
-      // 変数宣言の推奨
-      'prefer-const': 'error',    // constの使用を推奨
-      'no-var': 'error',          // varの使用を禁止
-      
-      // 基本的なフォーマットルール（緩和版）
-      'no-multiple-empty-lines': ['error', { max: 2, maxEOF: 1, maxBOF: 0 }],  // 最大2行の空行まで許可
-      'eol-last': 'error',        // ファイル末尾に改行を要求
-      'no-trailing-spaces': 'off',  // 行末の空白を許可
-      'no-mixed-spaces-and-tabs': 'off',  // スペースとタブの混在を許可
-      
-      // オブジェクト・配列のスペースルール
-      'object-curly-spacing': ['error', 'always'],  // オブジェクトリテラルの波括弧内にスペース
-      'array-bracket-spacing': ['error', 'never'],  // 配列リテラルの角括弧内にスペースなし
-      
-      // 演算子のスペースルール
-      'space-infix-ops': 'error',  // 演算子の前後にスペース
-      
-      // 追加の自動修正可能なルール
-      'comma-spacing': ['error', { before: false, after: true }],  // カンマの後のスペース
-      'key-spacing': ['error', { beforeColon: false, afterColon: true }],  // オブジェクトキーのスペース
-      'keyword-spacing': ['error', { before: true, after: true }],  // キーワードのスペース
-      'space-before-blocks': 'error',  // ブロックの前のスペース
-      'space-before-function-paren': ['error', 'never'],  // 関数名と括弧の間にスペースなし
-      'space-in-parens': ['error', 'never'],  // 括弧内のスペース
-      'space-unary-ops': ['error', { words: true, nonwords: false }],  // 単項演算子のスペース
-      'indent': ['error', 2],  // インデント（2スペース）
-      'quotes': ['error', 'single'],  // シングルクォート
-      'semi': ['error', 'always'],  // セミコロン
-      'comma-dangle': ['error', 'always-multiline'],  // マルチラインでの末尾カンマ
-      'no-multi-spaces': 'off',  // 複数のスペース
-      'no-irregular-whitespace': 'error',  // 不正な空白文字
-      
-      // インポート順序ルール（緩和版）
-      'sort-imports': ['warn', {
-        ignoreCase: false,           // 大文字小文字を区別
-        ignoreDeclarationSort: true, // インポート宣言の順序は無視
-        ignoreMemberSort: false,     // メンバーの順序はチェック
-        memberSyntaxSortOrder: ['none', 'all', 'multiple', 'single'],  // メンバー構文の順序
-        allowSeparatedGroups: true,  // グループ間の分離を許可
-      }],
-      
-      // その他の一般的なルール
-      'no-duplicate-imports': 'error',      // 重複インポートを禁止
-      'no-unreachable': 'error',            // 到達不能コードをエラー
-      'no-unreachable-loop': 'error',       // 到達不能ループをエラー
-    },
-  },
-])
+  prettierConfig,
+]);

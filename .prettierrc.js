@@ -1,3 +1,4 @@
+/** @type {import("prettier").Config} */
 export default {
   // セミコロンを文の末尾に自動追加
   semi: true,
@@ -24,7 +25,7 @@ export default {
   bracketSameLine: false,
   
   // アロー関数の単一パラメータで括弧を省略 param => {} の形式
-  arrowParens: 'avoid',
+  arrowParens: 'always',
   
   // 改行コードをUnix形式（LF）に統一
   endOfLine: 'lf',
