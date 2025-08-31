@@ -7,23 +7,19 @@
     "//--- Development ---": "echo",
     "dev": "vite",
     "dev:auto": "npm run auto-reload",
-
     "//--- Build ---": "echo",
     "build": "tsc -b && vite build",
     "build:clean": "rm -rf dist/* && tsc -b && vite build",
     "build:extension": "vite build --mode production",
-
     "//--- Browser Control ---": "echo",
     "brave:start": "scripts/brave-ctl.sh start",
     "brave:start:debug": "scripts/brave-ctl.sh start-debug",
     "brave:stop": "scripts/brave-ctl.sh stop",
     "brave:reset": "scripts/brave-ctl.sh reset",
-    
     "//--- Lint ---": "echo",
     "lint": "eslint . --cache --cache-location .eslintcache",
     "lint:fix": "eslint . --fix --cache --cache-location .eslintcache",
     "preview": "vite preview",
-
     "//--- Test ---": "echo",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -49,6 +45,7 @@
     "eslint-plugin-react-refresh": "^0.4.20",
     "globals": "^16.3.0",
     "postcss": "^8.5.6",
+    "prettier": "^3.6.2",
     "tailwindcss": "^3.4.17",
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.35.1",
