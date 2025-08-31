@@ -152,7 +152,7 @@ export default tseslint.config([
       'space-in-parens': ['error', 'never'],  // 括弧内のスペース
       'space-unary-ops': ['error', { words: true, nonwords: false }],  // 単項演算子のスペース
       'indent': ['error', 2],  // インデント（2スペース）
-      'quotes': ['error', 'single'],  // シングルクォート
+      // 'quotes': ['error', 'single'],  // シングルクォート
       'semi': ['error', 'always'],  // セミコロン
       'comma-dangle': ['off', 'always-multiline'],  // マルチラインでの末尾カンマ
       'no-multi-spaces': 'off',  // 複数のスペース
