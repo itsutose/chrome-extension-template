@@ -18,12 +18,6 @@
     "brave:start:debug": "scripts/brave-ctl.sh start-debug",
     "brave:stop": "scripts/brave-ctl.sh stop",
     "brave:reset": "scripts/brave-ctl.sh reset",
-
-    "//--- Browser Control (Deprecated)---": "echo",
-    "start:brave": "./start-brave.sh",
-    "start:brave:debug": "./start-brave-debug.sh",
-    "stop:brave:debug": "./stop-brave-debug.sh",
-    "reset:brave:debug": "./reset-brave-debug.sh",
     
     "//--- Lint ---": "echo",
     "lint": "eslint . --cache --cache-location .eslintcache",
